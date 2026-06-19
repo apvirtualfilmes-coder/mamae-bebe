@@ -3,23 +3,41 @@
 {% block content %}
 <div class="row">
     <div class="col-12">
-        <div class="card shadow-lg">
+        <div class="card-leag">
             <div class="card-body">
-                <h4 class="text-pink">
-                    <i class="bi bi-graph-up"></i> Relatório dos Últimos 7 Dias
+                <h4 class="texto-primario">
+                    <i class="bi bi-file-text"></i> Relatório do Bebê
                 </h4>
+                <p class="mb-0">
+                    <strong>Nome:</strong> {{ nome_bebe }} | 
+                    <strong>Idade:</strong> {{ idade }}
+                </p>
             </div>
         </div>
     </div>
 </div>
 
+<!-- AVALIAÇÃO -->
 <div class="row mt-4">
     <div class="col-12">
-        <div class="card shadow-lg">
+        <div class="card-leag bg-primario-light">
             <div class="card-body">
+                <h5 class="texto-primario"><i class="bi bi-clipboard-check"></i> Avaliação Geral</h5>
+                <p class="mb-0">{{ avaliacao }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- RESULTADOS DA SEMANA -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card-leag">
+            <div class="card-body">
+                <h5 class="texto-primario"><i class="bi bi-graph-up"></i> Últimos 7 Dias</h5>
                 {% if dados %}
                     <div class="table-responsive">
-                        <table class="table table-hover">
+                        <table class="table table-leag">
                             <thead>
                                 <tr>
                                     <th>Data</th>
@@ -33,7 +51,7 @@
                                 {% for dia in dados %}
                                 <tr>
                                     <td>{{ dia.data }}</td>
-                                    <td class="text-center"><span class="badge bg-pink">{{ dia.mamadas }}</span></td>
+                                    <td class="text-center"><span class="badge bg-primario">{{ dia.mamadas }}</span></td>
                                     <td class="text-center"><span class="badge bg-warning">{{ dia.coco }}</span></td>
                                     <td class="text-center"><span class="badge bg-success">{{ dia.xixi }}</span></td>
                                     <td class="text-center"><span class="badge bg-info">{{ dia.sono }}</span></td>
@@ -50,19 +68,78 @@
     </div>
 </div>
 
+<!-- DETALHES DO DIA -->
 <div class="row mt-4">
     <div class="col-12">
-        <div class="card shadow-lg">
+        <div class="card-leag">
             <div class="card-body">
-                <h5 class="text-pink"><i class="bi bi-lightbulb"></i> Dicas</h5>
+                <h5 class="texto-primario"><i class="bi bi-list-ul"></i> Detalhes de Hoje</h5>
+                {% if detalhes %}
+                    <div class="table-responsive">
+                        <table class="table table-leag">
+                            <thead>
+                                <tr>
+                                    <th>Atividade</th>
+                                    <th>Hora</th>
+                                    <th>Detalhes</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for d in detalhes %}
+                                <tr>
+                                    <td>{{ d.tipo }}</td>
+                                    <td>{{ d.hora }}</td>
+                                    <td>
+                                        {% if d.duracao != '-' %}
+                                            Duração: {{ d.duracao }}
+                                        {% endif %}
+                                        {% if d.lado != '-' %}
+                                            {{ d.lado }}
+                                        {% endif %}
+                                        {% if d.cor_coco != '-' %}
+                                            Cor: {{ d.cor_coco }}
+                                        {% endif %}
+                                        {% if d.consistencia_coco != '-' %}
+                                            Consistência: {{ d.consistencia_coco }}
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <p class="text-muted">Nenhum registro hoje.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- DICAS -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card-leag">
+            <div class="card-body">
+                <h5 class="texto-primario"><i class="bi bi-lightbulb"></i> Dicas e Referências Científicas</h5>
                 <ul class="list-unstyled">
-                    <li class="mb-2">✅ <strong>Amamentação:</strong> 8-12 mamadas por dia é o ideal</li>
+                    <li class="mb-2">✅ <strong>Amamentação:</strong> 8-12 mamadas por dia é o ideal (OMS)</li>
                     <li class="mb-2">✅ <strong>Hidratação:</strong> Mínimo 6 fraldas molhadas por dia</li>
-                    <li class="mb-2">✅ <strong>Sono:</strong> Recém-nascidos dormem 16-20h por dia</li>
+                    <li class="mb-2">✅ <strong>Sono:</strong> Recém-nascidos dormem 16-20h por dia (AAP)</li>
                     <li class="mb-2">✅ <strong>Cocô:</strong> Amamentação: até 7 dias sem cocô é normal</li>
+                    <li class="mb-2">✅ <strong>Referência:</strong> American Academy of Pediatrics, OMS, UNICEF</li>
                 </ul>
             </div>
         </div>
+    </div>
+</div>
+
+<!-- BOTÃO IMPRIMIR -->
+<div class="row mt-4">
+    <div class="col-12 text-center">
+        <button onclick="window.print()" class="btn btn-primario btn-lg">
+            <i class="bi bi-printer"></i> Imprimir Relatório para o Pediatra
+        </button>
     </div>
 </div>
 {% endblock %}

@@ -3,98 +3,187 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mamãe & Bebê</title>
+    <title>Leag Baby</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     <style>
+        /* ===== CORES DINÂMICAS ===== */
         :root {
-            --pink: #d63384;
-            --pink-dark: #a0205a;
+            --cor-primaria: 
+                {% if current_user and current_user.cor_tema == 'azul' %}
+                    #1a73e8
+                {% else %}
+                    #d63384
+                {% endif %}
+            ;
+            --cor-primaria-dark: 
+                {% if current_user and current_user.cor_tema == 'azul' %}
+                    #1557b0
+                {% else %}
+                    #a0205a
+                {% endif %}
+            ;
+            --cor-fundo: 
+                {% if current_user and current_user.modo_noturno %}
+                    #1a1a2e
+                {% else %}
+                    #fef3f7
+                {% endif %}
+            ;
+            --cor-fundo-card: 
+                {% if current_user and current_user.modo_noturno %}
+                    #2d2d44
+                {% else %}
+                    #ffffff
+                {% endif %}
+            ;
+            --cor-texto: 
+                {% if current_user and current_user.modo_noturno %}
+                    #e0e0e0
+                {% else %}
+                    #333333
+                {% endif %}
+            ;
+            --cor-texto-claro: 
+                {% if current_user and current_user.modo_noturno %}
+                    #b0b0b0
+                {% else %}
+                    #666666
+                {% endif %}
+            ;
         }
+        
         body {
-            background: linear-gradient(135deg, #fef3f7 0%, #fce4ec 100%);
+            background: var(--cor-fundo);
+            color: var(--cor-texto);
             min-height: 100vh;
             padding-bottom: 80px;
+            transition: all 0.3s ease;
         }
-        .navbar-pink {
-            background: linear-gradient(135deg, var(--pink) 0%, var(--pink-dark) 100%);
-            box-shadow: 0 2px 10px rgba(214, 51, 132, 0.3);
+        
+        .navbar-leag {
+            background: linear-gradient(135deg, var(--cor-primaria) 0%, var(--cor-primaria-dark) 100%);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
         }
-        .navbar-pink .navbar-brand,
-        .navbar-pink .nav-link {
+        
+        .navbar-leag .navbar-brand,
+        .navbar-leag .nav-link {
             color: white !important;
         }
-        .btn-pink {
-            background: linear-gradient(135deg, var(--pink) 0%, var(--pink-dark) 100%);
+        
+        .btn-primario {
+            background: var(--cor-primaria);
             color: white;
             border: none;
         }
-        .btn-pink:hover {
-            background: var(--pink-dark);
+        
+        .btn-primario:hover {
+            background: var(--cor-primaria-dark);
             color: white;
         }
-        .text-pink {
-            color: var(--pink) !important;
-        }
-        .card {
+        
+        .card-leag {
+            background: var(--cor-fundo-card);
             border: none;
             border-radius: 15px;
-            transition: transform 0.2s;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            color: var(--cor-texto);
         }
-        .card:hover {
+        
+        .card-leag:hover {
             transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
         }
-        .card.shadow-lg {
-            box-shadow: 0 10px 30px rgba(214, 51, 132, 0.15) !important;
+        
+        .texto-primario {
+            color: var(--cor-primaria) !important;
         }
-        .bg-pink-light {
-            background-color: #f8e8f0 !important;
+        
+        .bg-primario-light {
+            background-color: var(--cor-primaria);
+            opacity: 0.15;
         }
-        .bg-success-light {
-            background-color: #e8f5e9 !important;
-        }
-        .bg-warning-light {
-            background-color: #fff3e0 !important;
-        }
-        .bg-info-light {
-            background-color: #e3f2fd !important;
-        }
-        .bg-danger-light {
-            background-color: #fbe9e7 !important;
-        }
-        .btn {
+        
+        .form-control-leag {
+            background: var(--cor-fundo-card);
+            color: var(--cor-texto);
+            border: 2px solid var(--cor-primaria);
             border-radius: 10px;
-        }
-        .btn-lg {
-            border-radius: 12px;
-            padding: 12px 24px;
-        }
-        .form-control {
-            border-radius: 10px;
-            border: 2px solid #f0e0e8;
             padding: 12px;
         }
-        .form-control:focus {
-            border-color: var(--pink);
+        
+        .form-control-leag:focus {
+            border-color: var(--cor-primaria);
             box-shadow: 0 0 0 0.2rem rgba(214, 51, 132, 0.25);
         }
-        .tempo-grande {
-            font-size: 4rem;
-            font-weight: bold;
-            color: var(--pink);
+        
+        .btn-toggle-modo {
+            background: var(--cor-primaria);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            padding: 8px 20px;
+            transition: all 0.3s ease;
         }
+        
+        .btn-toggle-modo:hover {
+            transform: scale(1.05);
+        }
+        
+        /* Badges */
+        .badge-mamada-excesso {
+            background-color: #dc3545;
+            color: white;
+        }
+        
+        .badge-mamada-falta {
+            background-color: #ffc107;
+            color: black;
+        }
+        
+        .badge-mamada-ideal {
+            background-color: #28a745;
+            color: white;
+        }
+        
+        /* Tabela */
+        .table-leag {
+            color: var(--cor-texto);
+        }
+        
+        .table-leag thead th {
+            border-bottom: 2px solid var(--cor-primaria);
+            color: var(--cor-primaria);
+        }
+        
+        /* Scroll */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: var(--cor-fundo);
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: var(--cor-primaria);
+            border-radius: 4px;
+        }
+        
         @media (max-width: 576px) {
-            .tempo-grande {
-                font-size: 2.5rem;
+            .btn-lg {
+                font-size: 0.9rem;
+                padding: 10px 16px;
             }
         }
     </style>
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-pink">
+    <nav class="navbar navbar-expand-lg navbar-leag">
         <div class="container">
             <a class="navbar-brand" href="{{ url_for('dashboard') if current_user.is_authenticated else url_for('index') }}">
-                <i class="bi bi-heart-fill"></i> Mamãe & Bebê
+                <i class="bi bi-heart-fill"></i> Leag Baby
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
@@ -103,24 +192,22 @@
                 <ul class="navbar-nav ms-auto">
                     {% if current_user.is_authenticated %}
                         <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('dashboard') }}">
-                                <i class="bi bi-house"></i> Início
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('cronometro') }}">
-                                <i class="bi bi-clock"></i> Cronômetro
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('relatorio') }}">
-                                <i class="bi bi-graph-up"></i> Relatório
-                            </a>
-                        </li>
-                        <li class="nav-item">
                             <span class="nav-link text-white">
                                 <i class="bi bi-person"></i> {{ current_user.nome }}
                             </span>
+                        </li>
+                        <li class="nav-item">
+                            <form method="POST" action="{{ url_for('toggle_modo') }}" class="d-inline">
+                                <button type="submit" class="btn-toggle-modo">
+                                    <i class="bi {% if current_user.modo_noturno %}bi-sun{% else %}bi-moon{% endif %}"></i>
+                                    {{ 'Diurno' if current_user.modo_noturno else 'Noturno' }}
+                                </button>
+                            </form>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('relatorio') }}">
+                                <i class="bi bi-file-text"></i> Relatório
+                            </a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" href="{{ url_for('logout') }}">
@@ -160,5 +247,17 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Auto-dismiss alerts after 5 seconds
+        setTimeout(function() {
+            const alerts = document.querySelectorAll('.alert');
+            alerts.forEach(function(alert) {
+                const closeBtn = alert.querySelector('.btn-close');
+                if (closeBtn) {
+                    closeBtn.click();
+                }
+            });
+        }, 5000);
+    </script>
 </body>
 </html>

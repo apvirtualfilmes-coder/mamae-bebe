@@ -3,77 +3,114 @@
 {% block content %}
 <div class="row">
     <div class="col-12">
-        <div class="card shadow-lg mb-4">
+        <div class="card-leag mb-4">
             <div class="card-body">
-                <h4 class="text-pink">
-                    <i class="bi bi-person"></i> 
-                    {{ current_user.nome }} 
-                    <small class="text-muted">- {{ current_user.nome_bebe or 'Bebê' }}</small>
-                </h4>
-                <p class="mb-0">
-                    <i class="bi bi-calendar"></i> Registros de hoje - 
-                    {{ datetime.now().strftime('%d/%m/%Y') }}
-                </p>
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <h4 class="texto-primario">
+                            <i class="bi bi-person"></i> 
+                            {{ current_user.nome }}
+                            <small class="text-muted">- {{ current_user.nome_bebe or 'Bebê' }}</small>
+                        </h4>
+                        <p class="mb-0">
+                            <i class="bi bi-calendar"></i> 
+                            {{ current_user.nome_bebe or 'Bebê' }} tem <strong>{{ idade }}</strong>
+                            {% if current_user.peso_bebe %}
+                                | Peso: {{ current_user.peso_bebe }}kg
+                            {% endif %}
+                        </p>
+                        <p class="mb-0">
+                            <i class="bi bi-clock"></i> Registros de hoje - {{ datetime.now().strftime('%d/%m/%Y') }}
+                        </p>
+                    </div>
+                    <div class="col-md-4 text-end">
+                        <span class="badge {% if alerta_mamada.status == 'excesso' %}badge-mamada-excesso{% elif alerta_mamada.status == 'falta' %}badge-mamada-falta{% else %}badge-mamada-ideal{% endif %}">
+                            <i class="bi bi-info-circle"></i> {{ alerta_mamada.mensagem }}
+                        </span>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 </div>
 
+<!-- DICA CIENTÍFICA -->
+{% if dica %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card-leag bg-primario-light">
+            <div class="card-body">
+                <h5 class="texto-primario">
+                    <i class="bi bi-flask"></i> Dica Científica
+                </h5>
+                <p class="mb-0"><strong>{{ dica.titulo }}</strong></p>
+                <p class="mb-0 small">{{ dica.descricao }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- ESTATÍSTICAS -->
 <div class="row">
-    <div class="col-6 col-md-4 mb-3">
-        <div class="card bg-pink-light text-center">
+    <div class="col-4 col-md-2 mb-3">
+        <div class="card-leag text-center">
             <div class="card-body">
-                <h5><i class="bi bi-cup-hot"></i> Mamadas</h5>
-                <h2 class="text-pink">{{ stats.mamadas }}</h2>
-                <small>hoje</small>
+                <h6><i class="bi bi-cup-hot"></i> Mamadas</h6>
+                <h3 class="texto-primario">{{ stats.mamadas }}</h3>
+                <small class="text-muted">hoje</small>
+                <div class="mt-1">
+                    <span class="badge bg-info">D: {{ stats.mamadas_direito }}</span>
+                    <span class="badge bg-info">E: {{ stats.mamadas_esquerdo }}</span>
+                </div>
             </div>
         </div>
     </div>
-    <div class="col-6 col-md-4 mb-3">
-        <div class="card bg-success-light text-center">
+    <div class="col-4 col-md-2 mb-3">
+        <div class="card-leag text-center">
             <div class="card-body">
-                <h5><i class="bi bi-droplet"></i> Xixi</h5>
-                <h2 class="text-success">{{ stats.xixi }}</h2>
-                <small>hoje</small>
+                <h6><i class="bi bi-droplet"></i> Xixi</h6>
+                <h3 class="text-success">{{ stats.xixi }}</h3>
+                <small class="text-muted">hoje</small>
             </div>
         </div>
     </div>
-    <div class="col-6 col-md-4 mb-3">
-        <div class="card bg-warning-light text-center">
+    <div class="col-4 col-md-2 mb-3">
+        <div class="card-leag text-center">
             <div class="card-body">
-                <h5><i class="bi bi-emoji-smile"></i> Coco</h5>
-                <h2 class="text-warning">{{ stats.coco }}</h2>
-                <small>hoje</small>
+                <h6><i class="bi bi-emoji-smile"></i> Coco</h6>
+                <h3 class="text-warning">{{ stats.coco }}</h3>
+                <small class="text-muted">hoje</small>
             </div>
         </div>
     </div>
-    <div class="col-6 col-md-4 mb-3">
-        <div class="card bg-info-light text-center">
+    <div class="col-4 col-md-2 mb-3">
+        <div class="card-leag text-center">
             <div class="card-body">
-                <h5><i class="bi bi-moon"></i> Dormiu</h5>
-                <h2 class="text-info">{{ stats.sono }}</h2>
-                <small>hoje</small>
+                <h6><i class="bi bi-moon"></i> Dormiu</h6>
+                <h3 class="text-info">{{ stats.sono }}</h3>
+                <small class="text-muted">hoje</small>
             </div>
         </div>
     </div>
-    <div class="col-6 col-md-4 mb-3">
-        <div class="card bg-danger-light text-center">
+    <div class="col-4 col-md-2 mb-3">
+        <div class="card-leag text-center">
             <div class="card-body">
-                <h5><i class="bi bi-arrow-up"></i> Regurgito</h5>
-                <h2 class="text-danger">{{ stats.regurgito }}</h2>
-                <small>hoje</small>
+                <h6><i class="bi bi-arrow-up"></i> Regurgito</h6>
+                <h3 class="text-danger">{{ stats.regurgito }}</h3>
+                <small class="text-muted">hoje</small>
             </div>
         </div>
     </div>
-    <div class="col-6 col-md-4 mb-3">
-        <div class="card bg-primary-light text-center">
+    <div class="col-4 col-md-2 mb-3">
+        <div class="card-leag text-center">
             <div class="card-body">
-                <h5><i class="bi bi-clock"></i> Última Mamada</h5>
-                <h6 class="text-primary">
+                <h6><i class="bi bi-clock"></i> Última Mamada</h6>
+                <h6 class="texto-primario">
                     {% if ultima_mamada %}
                         {{ ultima_mamada.data_hora.strftime('%H:%M') }}
                         {% if ultima_mamada.duracao %}
-                            ({{ ultima_mamada.duracao }})
+                            <br><small>({{ ultima_mamada.duracao }})</small>
                         {% endif %}
                     {% else %}
                         --
@@ -84,30 +121,125 @@
     </div>
 </div>
 
+<!-- MAMADA - CRONÔMETRO INTEGRADO -->
 <div class="row mt-4">
     <div class="col-12">
-        <div class="card shadow-lg">
+        <div class="card-leag">
             <div class="card-body">
-                <h5 class="text-pink"><i class="bi bi-clock-history"></i> Últimos Registros</h5>
+                <h5 class="texto-primario"><i class="bi bi-cup-hot"></i> Registrar Mamada</h5>
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <select id="ladoMamada" class="form-select form-control-leag">
+                            <option value="direito">Peito Direito</option>
+                            <option value="esquerdo">Peito Esquerdo</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="d-flex align-items-center">
+                            <h2 id="cronometroDisplay" class="mb-0 texto-primario">00:00</h2>
+                            <span id="statusMamada" class="ms-2 badge bg-warning" style="display:none;">Mamando...</span>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <button id="btnIniciarMamada" class="btn btn-primario w-100" onclick="iniciarMamada()">
+                            <i class="bi bi-play-fill"></i> Iniciar Mamada
+                        </button>
+                        <button id="btnPararMamada" class="btn btn-danger w-100" onclick="pararMamada()" style="display:none;">
+                            <i class="bi bi-stop-fill"></i> Parar Mamada
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- BOTÕES RÁPIDOS -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card-leag">
+            <div class="card-body">
+                <h5 class="texto-primario"><i class="bi bi-plus-circle"></i> Registrar Atividade</h5>
+                <div class="row g-2">
+                    <div class="col-6 col-md-2">
+                        <form method="POST" action="{{ url_for('registrar') }}">
+                            <input type="hidden" name="tipo" value="Coco">
+                            <button type="submit" class="btn btn-warning w-100" data-bs-toggle="modal" data-bs-target="#modalCoco">
+                                <i class="bi bi-emoji-smile"></i><br>Cocô
+                            </button>
+                        </form>
+                    </div>
+                    <div class="col-6 col-md-2">
+                        <form method="POST" action="{{ url_for('registrar') }}">
+                            <input type="hidden" name="tipo" value="Xixi">
+                            <button type="submit" class="btn btn-success w-100">
+                                <i class="bi bi-droplet"></i><br>Xixi
+                            </button>
+                        </form>
+                    </div>
+                    <div class="col-6 col-md-2">
+                        <form method="POST" action="{{ url_for('registrar') }}">
+                            <input type="hidden" name="tipo" value="Regurgito">
+                            <button type="submit" class="btn btn-danger w-100">
+                                <i class="bi bi-arrow-up"></i><br>Regurgito
+                            </button>
+                        </form>
+                    </div>
+                    <div class="col-6 col-md-2">
+                        <form method="POST" action="{{ url_for('registrar') }}">
+                            <input type="hidden" name="tipo" value="Dormiu">
+                            <button type="submit" class="btn btn-info w-100">
+                                <i class="bi bi-moon"></i><br>Dormiu
+                            </button>
+                        </form>
+                    </div>
+                    <div class="col-6 col-md-2">
+                        <a href="{{ url_for('relatorio') }}" class="btn btn-primario w-100">
+                            <i class="bi bi-file-text"></i><br>Relatório
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ÚLTIMOS REGISTROS -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card-leag">
+            <div class="card-body">
+                <h5 class="texto-primario"><i class="bi bi-clock-history"></i> Últimos Registros</h5>
                 {% if registros %}
                     <div class="list-group">
                         {% for r in registros %}
-                            <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <div class="list-group-item d-flex justify-content-between align-items-center" style="background: var(--cor-fundo-card); color: var(--cor-texto); border-color: var(--cor-primaria);">
                                 <span>
                                     <i class="bi 
-                                        {% if r.tipo == 'Mamou' %}bi-cup-hot text-pink
+                                        {% if r.tipo == 'Mamou' %}bi-cup-hot texto-primario
                                         {% elif r.tipo == 'Coco' %}bi-emoji-smile text-warning
                                         {% elif r.tipo == 'Xixi' %}bi-droplet text-success
                                         {% elif r.tipo == 'Regurgito' %}bi-arrow-up text-danger
                                         {% else %}bi-moon text-info{% endif %}">
                                     </i>
                                     {{ r.tipo }}
-                                </span>
-                                <span class="text-muted small">
-                                    {{ r.data_hora.strftime('%H:%M') }}
-                                    {% if r.duracao %}
-                                        <span class="badge bg-pink">{{ r.duracao }}</span>
+                                    {% if r.lado %}
+                                        <small class="text-muted">({{ r.lado }})</small>
                                     {% endif %}
+                                    {% if r.duracao %}
+                                        <span class="badge bg-primary">{{ r.duracao }}</span>
+                                    {% endif %}
+                                    {% if r.cor_coco %}
+                                        <small class="text-muted">| Cor: {{ r.cor_coco }}</small>
+                                    {% endif %}
+                                </span>
+                                <span>
+                                    <span class="text-muted small">{{ r.data_hora.strftime('%H:%M') }}</span>
+                                    <form method="POST" action="{{ url_for('excluir_registro', registro_id=r.id) }}" class="d-inline">
+                                        <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Tem certeza que deseja excluir este registro?')">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </form>
                                 </span>
                             </div>
                         {% endfor %}
@@ -120,60 +252,107 @@
     </div>
 </div>
 
-<div class="row mt-4">
-    <div class="col-12">
-        <div class="card shadow-lg">
-            <div class="card-body">
-                <h5 class="text-pink"><i class="bi bi-plus-circle"></i> Registrar Atividade</h5>
-                <div class="row g-2">
-                    <div class="col-4 col-md-2">
-                        <form method="POST" action="{{ url_for('registrar') }}">
-                            <input type="hidden" name="tipo" value="Mamou">
-                            <button type="submit" class="btn btn-pink w-100">
-                                <i class="bi bi-cup-hot"></i><br>Mamou
-                            </button>
-                        </form>
+<!-- Modal para COCÔ -->
+<div class="modal fade" id="modalCoco" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content" style="background: var(--cor-fundo-card); color: var(--cor-texto);">
+            <div class="modal-header">
+                <h5 class="modal-title">Registrar Cocô</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{{ url_for('registrar') }}">
+                <div class="modal-body">
+                    <input type="hidden" name="tipo" value="Coco">
+                    <div class="mb-3">
+                        <label class="form-label">Cor do Cocô</label>
+                        <select name="cor_coco" class="form-select form-control-leag" required>
+                            <option value="amarela">Amarela (normal)</option>
+                            <option value="verde">Verde (pode indicar alergia)</option>
+                            <option value="marrom">Marrom</option>
+                            <option value="preta">Preta (consulte pediatra)</option>
+                            <option value="branca">Branca (consulte pediatra)</option>
+                        </select>
                     </div>
-                    <div class="col-4 col-md-2">
-                        <form method="POST" action="{{ url_for('registrar') }}">
-                            <input type="hidden" name="tipo" value="Coco">
-                            <button type="submit" class="btn btn-warning w-100">
-                                <i class="bi bi-emoji-smile"></i><br>Cocô
-                            </button>
-                        </form>
-                    </div>
-                    <div class="col-4 col-md-2">
-                        <form method="POST" action="{{ url_for('registrar') }}">
-                            <input type="hidden" name="tipo" value="Xixi">
-                            <button type="submit" class="btn btn-success w-100">
-                                <i class="bi bi-droplet"></i><br>Xixi
-                            </button>
-                        </form>
-                    </div>
-                    <div class="col-4 col-md-2">
-                        <form method="POST" action="{{ url_for('registrar') }}">
-                            <input type="hidden" name="tipo" value="Regurgito">
-                            <button type="submit" class="btn btn-danger w-100">
-                                <i class="bi bi-arrow-up"></i><br>Regurgito
-                            </button>
-                        </form>
-                    </div>
-                    <div class="col-4 col-md-2">
-                        <form method="POST" action="{{ url_for('registrar') }}">
-                            <input type="hidden" name="tipo" value="Dormiu">
-                            <button type="submit" class="btn btn-info w-100">
-                                <i class="bi bi-moon"></i><br>Dormiu
-                            </button>
-                        </form>
-                    </div>
-                    <div class="col-4 col-md-2">
-                        <a href="{{ url_for('cronometro') }}" class="btn btn-secondary w-100">
-                            <i class="bi bi-clock"></i><br>Cronômetro
-                        </a>
+                    <div class="mb-3">
+                        <label class="form-label">Consistência</label>
+                        <select name="consistencia_coco" class="form-select form-control-leag" required>
+                            <option value="pastosa">Pastosa (normal)</option>
+                            <option value="liquida">Líquida (diarreia)</option>
+                            <option value="dura">Dura (prisão de ventre)</option>
+                            <option value="com_muco">Com muco (consulte pediatra)</option>
+                        </select>
                     </div>
                 </div>
-            </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primario">Registrar</button>
+                </div>
+            </form>
         </div>
     </div>
 </div>
+
+<script>
+let cronometroInterval = null;
+let segundos = 0;
+let minutos = 0;
+let estaMamando = false;
+
+function iniciarMamada() {
+    if (estaMamando) return;
+    
+    const lado = document.getElementById('ladoMamada').value;
+    
+    // Iniciar cronômetro
+    estaMamando = true;
+    segundos = 0;
+    minutos = 0;
+    document.getElementById('cronometroDisplay').textContent = '00:00';
+    document.getElementById('btnIniciarMamada').style.display = 'none';
+    document.getElementById('btnPararMamada').style.display = 'block';
+    document.getElementById('statusMamada').style.display = 'inline';
+    
+    // Informar o backend que começou
+    fetch('/api/iniciar_mamada', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({lado: lado})
+    });
+    
+    cronometroInterval = setInterval(function() {
+        segundos++;
+        if (segundos >= 60) {
+            segundos = 0;
+            minutos++;
+        }
+        document.getElementById('cronometroDisplay').textContent = 
+            String(minutos).padStart(2, '0') + ':' + String(segundos).padStart(2, '0');
+    }, 1000);
+}
+
+function pararMamada() {
+    if (!estaMamando) return;
+    
+    estaMamando = false;
+    clearInterval(cronometroInterval);
+    const tempo = document.getElementById('cronometroDisplay').textContent;
+    
+    document.getElementById('btnPararMamada').style.display = 'none';
+    document.getElementById('btnIniciarMamada').style.display = 'block';
+    document.getElementById('statusMamada').style.display = 'none';
+    
+    // Registrar no backend
+    fetch('/api/parar_mamada', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'}
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Mamada registrada! Duração: ' + tempo);
+            location.reload();
+        }
+    });
+}
+</script>
 {% endblock %}
