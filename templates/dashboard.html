@@ -273,7 +273,7 @@
     </div>
 </div>
 
-<!-- BICHINHO VIRTUAL (COM EMOJIS) -->
+<!-- BICHINHO VIRTUAL -->
 <div class="row mt-4">
     <div class="col-12">
         <div class="card-leag">
@@ -303,7 +303,9 @@
                                     Sono: {{ bichinho.nivel_sono }}%
                                 </small>
                             {% else %}
-                                <a href="{{ url_for('criar_bichinho') }}" class="texto-primario">Criar Bichinho</a>
+                                <span style="color: var(--cor-texto) !important;">
+                                    O bichinho será criado automaticamente quando você registrar atividades! 🐾
+                                </span>
                             {% endif %}
                         </p>
                     </div>
