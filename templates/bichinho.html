@@ -108,11 +108,11 @@
 </div>
 
 <script>
-// Mapeamento de humores para emojis
+// Mapeamento de humores para EMOJIS DE CARINHA
 const emojis = {
     'feliz': '😊',
     'brincalhao': '😄',
-    'com_fome': '😋',
+    'com_fome': '😩',
     'com_sono': '😴',
     'brabo': '😠',
     'doente': '😷',
@@ -123,7 +123,7 @@ const emojis = {
 const nomesHumores = {
     'feliz': 'Feliz 😊',
     'brincalhao': 'Brincalhão 😄',
-    'com_fome': 'Com Fome 😋',
+    'com_fome': 'Com Fome 😩',
     'com_sono': 'Com Sono 😴',
     'brabo': 'Brabo 😠',
     'doente': 'Doente 😷',
@@ -136,14 +136,10 @@ function atualizarBichinho() {
         .then(response => response.json())
         .then(data => {
             if (data.humor) {
-                // Atualizar emoji
                 document.getElementById('emojiBichinho').textContent = emojis[data.humor] || '😐';
-                
-                // Atualizar textos
                 document.getElementById('humorBichinho').textContent = data.humor;
                 document.getElementById('humorTexto').textContent = nomesHumores[data.humor] || data.humor;
                 
-                // Atualizar barras
                 document.getElementById('felicidadeTexto').textContent = data.felicidade + '%';
                 document.getElementById('felicidadeBarra').style.width = data.felicidade + '%';
                 document.getElementById('fomeTexto').textContent = data.fome + '%';
@@ -172,10 +168,7 @@ function interagir(acao) {
     .catch(error => console.error('Erro:', error));
 }
 
-// Atualizar automaticamente a cada 30 segundos
 setInterval(atualizarBichinho, 30000);
-
-// Atualizar ao carregar a página
 document.addEventListener('DOMContentLoaded', atualizarBichinho);
 </script>
 {% endblock %}
