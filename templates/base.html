@@ -143,16 +143,47 @@
         }
         
         .table-leag {
-            color: var(--cor-texto);
+            color: var(--cor-texto) !important;
         }
         
         .table-leag thead th {
             border-bottom: 2px solid var(--cor-primaria);
-            color: var(--cor-primaria);
+            color: var(--cor-texto) !important;
         }
         
         .table-leag tbody td {
             color: var(--cor-texto) !important;
+        }
+        
+        /* ===== CONTRASTE PARA RELATÓRIO ===== */
+        .relatorio-texto {
+            color: var(--cor-texto) !important;
+        }
+        
+        .relatorio-texto strong {
+            color: var(--cor-texto) !important;
+        }
+        
+        .table-relatorio {
+            color: var(--cor-texto) !important;
+        }
+        
+        .table-relatorio th,
+        .table-relatorio td {
+            color: var(--cor-texto) !important;
+        }
+        
+        .relatorio-card {
+            background-color: var(--cor-fundo-card) !important;
+            border: 1px solid var(--cor-primaria) !important;
+            border-radius: 15px !important;
+            padding: 15px !important;
+        }
+        
+        /* Badge primario */
+        .badge.bg-primario {
+            background-color: var(--cor-primaria) !important;
+            color: white !important;
         }
         
         ::-webkit-scrollbar {
@@ -174,12 +205,6 @@
             color: var(--cor-texto);
             padding: 15px 0;
             margin-top: 30px;
-        }
-        
-        /* Badge primario */
-        .badge.bg-primario {
-            background-color: var(--cor-primaria) !important;
-            color: white;
         }
         
         @media (max-width: 576px) {
