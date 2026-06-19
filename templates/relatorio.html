@@ -8,9 +8,11 @@
                 <h4 class="texto-primario">
                     <i class="bi bi-file-text"></i> Relatório do Bebê
                 </h4>
-                <p class="mb-0">
-                    <strong>Nome:</strong> {{ nome_bebe }} | 
-                    <strong>Idade:</strong> {{ idade }}
+                <p class="mb-0" style="color: var(--cor-texto) !important;">
+                    <strong style="color: var(--cor-texto) !important;">Nome:</strong> 
+                    <span style="color: var(--cor-texto) !important;">{{ nome_bebe }}</span> | 
+                    <strong style="color: var(--cor-texto) !important;">Idade:</strong> 
+                    <span style="color: var(--cor-texto) !important;">{{ idade }}</span>
                 </p>
             </div>
         </div>
@@ -23,7 +25,7 @@
         <div class="card-leag bg-primario-light">
             <div class="card-body">
                 <h5 class="texto-primario"><i class="bi bi-clipboard-check"></i> Avaliação Geral</h5>
-                <p class="mb-0">{{ avaliacao }}</p>
+                <p class="mb-0" style="color: var(--cor-texto) !important;">{{ avaliacao }}</p>
             </div>
         </div>
     </div>
@@ -40,17 +42,17 @@
                         <table class="table table-leag">
                             <thead>
                                 <tr>
-                                    <th>Data</th>
-                                    <th class="text-center">🍼 Mamadas</th>
-                                    <th class="text-center">💩 Coco</th>
-                                    <th class="text-center">💦 Xixi</th>
-                                    <th class="text-center">😴 Sono</th>
+                                    <th style="color: var(--cor-texto) !important;">Data</th>
+                                    <th class="text-center" style="color: var(--cor-texto) !important;">🍼 Mamadas</th>
+                                    <th class="text-center" style="color: var(--cor-texto) !important;">💩 Coco</th>
+                                    <th class="text-center" style="color: var(--cor-texto) !important;">💦 Xixi</th>
+                                    <th class="text-center" style="color: var(--cor-texto) !important;">😴 Sono</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {% for dia in dados %}
                                 <tr>
-                                    <td>{{ dia.data }}</td>
+                                    <td style="color: var(--cor-texto) !important;">{{ dia.data }}</td>
                                     <td class="text-center"><span class="badge bg-primario">{{ dia.mamadas }}</span></td>
                                     <td class="text-center"><span class="badge bg-warning">{{ dia.coco }}</span></td>
                                     <td class="text-center"><span class="badge bg-success">{{ dia.xixi }}</span></td>
@@ -61,7 +63,7 @@
                         </table>
                     </div>
                 {% else %}
-                    <p class="text-muted">Nenhum dado disponível.</p>
+                    <p class="text-muted" style="color: var(--cor-texto) !important;">Nenhum dado disponível.</p>
                 {% endif %}
             </div>
         </div>
@@ -79,17 +81,17 @@
                         <table class="table table-leag">
                             <thead>
                                 <tr>
-                                    <th>Atividade</th>
-                                    <th>Hora</th>
-                                    <th>Detalhes</th>
+                                    <th style="color: var(--cor-texto) !important;">Atividade</th>
+                                    <th style="color: var(--cor-texto) !important;">Hora</th>
+                                    <th style="color: var(--cor-texto) !important;">Detalhes</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {% for d in detalhes %}
                                 <tr>
-                                    <td>{{ d.tipo }}</td>
-                                    <td>{{ d.hora }}</td>
-                                    <td>
+                                    <td style="color: var(--cor-texto) !important;">{{ d.tipo }}</td>
+                                    <td style="color: var(--cor-texto) !important;">{{ d.hora }}</td>
+                                    <td style="color: var(--cor-texto) !important;">
                                         {% if d.duracao != '-' %}
                                             Duração: {{ d.duracao }}
                                         {% endif %}
@@ -109,8 +111,50 @@
                         </table>
                     </div>
                 {% else %}
-                    <p class="text-muted">Nenhum registro hoje.</p>
+                    <p class="text-muted" style="color: var(--cor-texto) !important;">Nenhum registro hoje.</p>
                 {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ESTIMATIVAS -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card-leag" style="border: 2px solid var(--cor-primaria);">
+            <div class="card-body">
+                <h5 class="texto-primario"><i class="bi bi-clock-history"></i> Estimativas Baseadas nos Últimos 7 Dias</h5>
+                <div class="row">
+                    <div class="col-md-6">
+                        <p style="color: var(--cor-texto) !important;">
+                            <strong style="color: var(--cor-texto) !important;">🍼 Média de Mamadas:</strong> 
+                            <span style="color: var(--cor-texto) !important;">{{ estimativas.media_mamadas }}x por dia</span>
+                        </p>
+                        <p style="color: var(--cor-texto) !important;">
+                            <strong style="color: var(--cor-texto) !important;">⏰ Intervalo entre mamadas:</strong> 
+                            <span style="color: var(--cor-texto) !important;">{{ estimativas.intervalo_mamadas }}</span>
+                        </p>
+                    </div>
+                    <div class="col-md-6">
+                        <p style="color: var(--cor-texto) !important;">
+                            <strong style="color: var(--cor-texto) !important;">💩 Média de Cocô:</strong> 
+                            <span style="color: var(--cor-texto) !important;">{{ estimativas.media_coco }}x por dia</span>
+                        </p>
+                        <p style="color: var(--cor-texto) !important;">
+                            <strong style="color: var(--cor-texto) !important;">💦 Média de Xixi:</strong> 
+                            <span style="color: var(--cor-texto) !important;">{{ estimativas.media_xixi }}x por dia</span>
+                        </p>
+                        <p style="color: var(--cor-texto) !important;">
+                            <strong style="color: var(--cor-texto) !important;">😴 Média de Sono:</strong> 
+                            <span style="color: var(--cor-texto) !important;">{{ estimativas.media_sono }}x por dia</span>
+                        </p>
+                    </div>
+                </div>
+                <hr style="border-color: var(--cor-primaria);">
+                <p style="color: var(--cor-texto) !important; font-size: 0.9rem;">
+                    <i class="bi bi-info-circle"></i> 
+                    <span style="color: var(--cor-texto) !important;">Baseado nos registros dos últimos 7 dias. As estimativas melhoram com mais dados.</span>
+                </p>
             </div>
         </div>
     </div>
@@ -123,11 +167,11 @@
             <div class="card-body">
                 <h5 class="texto-primario"><i class="bi bi-lightbulb"></i> Dicas e Referências Científicas</h5>
                 <ul class="list-unstyled">
-                    <li class="mb-2">✅ <strong>Amamentação:</strong> 8-12 mamadas por dia é o ideal (OMS)</li>
-                    <li class="mb-2">✅ <strong>Hidratação:</strong> Mínimo 6 fraldas molhadas por dia</li>
-                    <li class="mb-2">✅ <strong>Sono:</strong> Recém-nascidos dormem 16-20h por dia (AAP)</li>
-                    <li class="mb-2">✅ <strong>Cocô:</strong> Amamentação: até 7 dias sem cocô é normal</li>
-                    <li class="mb-2">✅ <strong>Referência:</strong> American Academy of Pediatrics, OMS, UNICEF</li>
+                    <li class="mb-2" style="color: var(--cor-texto) !important;">✅ <strong style="color: var(--cor-texto) !important;">Amamentação:</strong> <span style="color: var(--cor-texto) !important;">8-12 mamadas por dia é o ideal (OMS)</span></li>
+                    <li class="mb-2" style="color: var(--cor-texto) !important;">✅ <strong style="color: var(--cor-texto) !important;">Hidratação:</strong> <span style="color: var(--cor-texto) !important;">Mínimo 6 fraldas molhadas por dia</span></li>
+                    <li class="mb-2" style="color: var(--cor-texto) !important;">✅ <strong style="color: var(--cor-texto) !important;">Sono:</strong> <span style="color: var(--cor-texto) !important;">Recém-nascidos dormem 16-20h por dia (AAP)</span></li>
+                    <li class="mb-2" style="color: var(--cor-texto) !important;">✅ <strong style="color: var(--cor-texto) !important;">Cocô:</strong> <span style="color: var(--cor-texto) !important;">Amamentação: até 7 dias sem cocô é normal</span></li>
+                    <li class="mb-2" style="color: var(--cor-texto) !important;">✅ <strong style="color: var(--cor-texto) !important;">Referência:</strong> <span style="color: var(--cor-texto) !important;">American Academy of Pediatrics, OMS, UNICEF</span></li>
                 </ul>
             </div>
         </div>

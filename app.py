@@ -256,6 +256,22 @@ def registrar():
         consistencia_coco = request.form.get('consistencia_coco')
         observacao = request.form.get('observacao')
         
+        # Para sono, calcular duração a partir do início e fim
+        if tipo == 'Dormiu':
+            inicio_sono = request.form.get('inicio_sono')
+            fim_sono = request.form.get('fim_sono')
+            if inicio_sono and fim_sono:
+                hoje = datetime.now().date()
+                inicio = datetime.strptime(f"{hoje} {inicio_sono}", '%Y-%m-%d %H:%M')
+                fim = datetime.strptime(f"{hoje} {fim_sono}", '%Y-%m-%d %H:%M')
+                if fim < inicio:
+                    fim = fim + timedelta(days=1)
+                diff = fim - inicio
+                horas = int(diff.total_seconds() // 3600)
+                minutos = int((diff.total_seconds() % 3600) // 60)
+                duracao = f"{horas:02d}:{minutos:02d}"
+                observacao = f"Dormiu das {inicio_sono} às {fim_sono} (Duração: {duracao})"
+        
         registro = Registro(
             usuario_id=current_user.id,
             tipo=tipo,
@@ -351,15 +367,50 @@ def relatorio():
         idade = calcular_idade_exata(current_user)
         avaliacao = gerar_avaliacao(dados_semana, current_user)
         
+        # ===== ESTIMATIVAS =====
+        total_dias = len([d for d in dados_semana if d['mamadas'] > 0 or d['coco'] > 0 or d['xixi'] > 0])
+        if total_dias > 0:
+            total_mamadas = sum(d['mamadas'] for d in dados_semana)
+            total_coco = sum(d['coco'] for d in dados_semana)
+            total_xixi = sum(d['xixi'] for d in dados_semana)
+            total_sono = sum(d['sono'] for d in dados_semana)
+            
+            media_mamadas = round(total_mamadas / total_dias, 1)
+            media_coco = round(total_coco / total_dias, 1)
+            media_xixi = round(total_xixi / total_dias, 1)
+            media_sono = round(total_sono / total_dias, 1)
+            
+            # Calcular intervalo entre mamadas (em horas)
+            if media_mamadas > 0:
+                intervalo = round(24 / media_mamadas, 1)
+                intervalo_str = f"{intervalo} horas"
+            else:
+                intervalo_str = "Sem dados suficientes"
+        else:
+            media_mamadas = 0
+            media_coco = 0
+            media_xixi = 0
+            media_sono = 0
+            intervalo_str = "Sem dados suficientes"
+        
+        estimativas = {
+            'media_mamadas': media_mamadas,
+            'media_coco': media_coco,
+            'media_xixi': media_xixi,
+            'media_sono': media_sono,
+            'intervalo_mamadas': intervalo_str
+        }
+        
         return render_template('relatorio.html', 
                              dados=dados_semana,
                              detalhes=detalhes,
                              idade=idade,
                              avaliacao=avaliacao,
-                             nome_bebe=current_user.nome_bebe or 'Bebê')
+                             nome_bebe=current_user.nome_bebe or 'Bebê',
+                             estimativas=estimativas)
     except Exception as e:
         flash(f'Erro ao carregar relatório: {str(e)}', 'danger')
-        return render_template('relatorio.html', dados=[], detalhes=[])
+        return render_template('relatorio.html', dados=[], detalhes=[], estimativas={})
 
 @app.route('/api/iniciar_mamada', methods=['POST'])
 @login_required
