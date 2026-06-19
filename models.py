@@ -23,7 +23,6 @@ class Usuario(UserMixin, db.Model):
     pesos = db.relationship('PesoRegistro', backref='usuario', lazy=True, cascade='all, delete-orphan')
     vacinas = db.relationship('Vacina', backref='usuario', lazy=True, cascade='all, delete-orphan')
     marcos = db.relationship('MarcoDesenvolvimento', backref='usuario', lazy=True, cascade='all, delete-orphan')
-    fotos = db.relationship('FotoBebe', backref='usuario', lazy=True, cascade='all, delete-orphan')
 
 class Registro(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -61,14 +60,6 @@ class MarcoDesenvolvimento(db.Model):
     data = db.Column(db.Date, default=datetime.utcnow().date)
     idade_meses = db.Column(db.Integer)
     conquistado = db.Column(db.Boolean, default=True)
-    observacao = db.Column(db.Text)
-
-class FotoBebe(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    usuario_id = db.Column(db.Integer, db.ForeignKey('usuario.id'), nullable=False)
-    titulo = db.Column(db.String(200))
-    data = db.Column(db.Date, default=datetime.utcnow().date)
-    caminho = db.Column(db.String(500))
     observacao = db.Column(db.Text)
 
 class DicaCientifica(db.Model):
