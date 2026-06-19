@@ -398,7 +398,46 @@
 {% endif %}
 
 <!-- MODAIS -->
-<!-- Modal Coco (já existente) -->
+<!-- Modal Coco -->
+<div class="modal fade" id="modalCoco" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content" style="background: var(--cor-fundo-card); color: var(--cor-texto);">
+            <div class="modal-header">
+                <h5 class="modal-title" style="color: var(--cor-texto) !important;">Registrar Cocô</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{{ url_for('registrar') }}">
+                <div class="modal-body">
+                    <input type="hidden" name="tipo" value="Coco">
+                    <div class="mb-3">
+                        <label style="color: var(--cor-texto) !important;" class="form-label">Cor do Cocô</label>
+                        <select name="cor_coco" class="form-select form-control-leag" required>
+                            <option value="amarela">Amarela (normal)</option>
+                            <option value="verde">Verde (pode indicar alergia)</option>
+                            <option value="marrom">Marrom</option>
+                            <option value="preta">Preta (consulte pediatra)</option>
+                            <option value="branca">Branca (consulte pediatra)</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label style="color: var(--cor-texto) !important;" class="form-label">Consistência</label>
+                        <select name="consistencia_coco" class="form-select form-control-leag" required>
+                            <option value="pastosa">Pastosa (normal)</option>
+                            <option value="liquida">Líquida (diarreia)</option>
+                            <option value="dura">Dura (prisão de ventre)</option>
+                            <option value="com_muco">Com muco (consulte pediatra)</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primario">Registrar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <!-- Modal Banho -->
 <div class="modal fade" id="modalBanho" tabindex="-1">
     <div class="modal-dialog">
@@ -712,7 +751,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 document.getElementById('btnPararMamada').style.display = 'block';
                 document.getElementById('statusMamada').style.display = 'inline';
                 document.getElementById('cronometroDisplay').textContent = data.tempo;
-                // Continuar cronômetro
                 const partes = data.tempo.split(':');
                 minutos = parseInt(partes[0]);
                 segundos = parseInt(partes[1]);

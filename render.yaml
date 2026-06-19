@@ -6,7 +6,7 @@ services:
     startCommand: gunicorn app:app
     envVars:
       - key: DATABASE_URL
-        value: postgresql://usuario:senha@host/mamae_bebe
+        value: postgresql://neondb_owner:npg_lYCqkvL06AhR@ep-dawn-breeze-ackobcp8-pooler.sa-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require
       - key: SECRET_KEY
         generateValue: true
       - key: PYTHON_VERSION

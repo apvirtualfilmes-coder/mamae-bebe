@@ -248,10 +248,8 @@ def dashboard():
         if bichinho:
             atualizar_niveis_bichinho(bichinho)
         
-        # Lista de pesos para o gráfico
         pesos = PesoRegistro.query.filter_by(usuario_id=current_user.id).order_by(PesoRegistro.data).all()
         
-        # Vacinas pendentes
         vacinas_pendentes = Vacina.query.filter(
             Vacina.usuario_id == current_user.id,
             Vacina.aplicada == False
@@ -298,7 +296,6 @@ def registrar():
         db.session.add(registro)
         db.session.commit()
         
-        # Atualizar bichinho
         bichinho = BichinhoVirtual.query.filter_by(usuario_id=current_user.id).first()
         if bichinho:
             atualizar_niveis_bichinho(bichinho)
@@ -385,7 +382,6 @@ def registrar_banho():
         
         db.session.add(banho)
         
-        # Registrar também como evento
         registro = Registro(
             usuario_id=current_user.id,
             tipo='Banho',

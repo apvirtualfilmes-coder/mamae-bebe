@@ -1,10 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-    <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
-    <meta name="theme-color" content="#d63384">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Leag Baby</title>
@@ -147,47 +143,16 @@
         }
         
         .table-leag {
-            color: var(--cor-texto) !important;
+            color: var(--cor-texto);
         }
         
         .table-leag thead th {
             border-bottom: 2px solid var(--cor-primaria);
-            color: var(--cor-texto) !important;
+            color: var(--cor-primaria);
         }
         
         .table-leag tbody td {
             color: var(--cor-texto) !important;
-        }
-        
-        /* ===== CONTRASTE PARA RELATÓRIO ===== */
-        .relatorio-texto {
-            color: var(--cor-texto) !important;
-        }
-        
-        .relatorio-texto strong {
-            color: var(--cor-texto) !important;
-        }
-        
-        .table-relatorio {
-            color: var(--cor-texto) !important;
-        }
-        
-        .table-relatorio th,
-        .table-relatorio td {
-            color: var(--cor-texto) !important;
-        }
-        
-        .relatorio-card {
-            background-color: var(--cor-fundo-card) !important;
-            border: 1px solid var(--cor-primaria) !important;
-            border-radius: 15px !important;
-            padding: 15px !important;
-        }
-        
-        /* Badge primario */
-        .badge.bg-primario {
-            background-color: var(--cor-primaria) !important;
-            color: white !important;
         }
         
         ::-webkit-scrollbar {
@@ -203,12 +168,16 @@
             border-radius: 4px;
         }
         
-        /* Rodapé */
         .footer-leag {
             border-top: 1px solid var(--cor-primaria);
             color: var(--cor-texto);
             padding: 15px 0;
             margin-top: 30px;
+        }
+        
+        .badge.bg-primario {
+            background-color: var(--cor-primaria) !important;
+            color: white;
         }
         
         @media (max-width: 576px) {
@@ -286,7 +255,6 @@
         {% block content %}{% endblock %}
     </div>
 
-    <!-- Rodapé com Créditos -->
     <footer class="footer-leag text-center">
         <div class="container">
             <small>
