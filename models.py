@@ -20,10 +20,7 @@ class Usuario(UserMixin, db.Model):
 class Registro(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     usuario_id = db.Column(db.Integer, db.ForeignKey('usuario.id'), nullable=False)
-    tipo = db.Column(db.String(50), nullable=False)  # Mamou, Coco, Xixi, Regurgito, Dormiu
+    tipo = db.Column(db.String(50), nullable=False)
     data_hora = db.Column(db.DateTime, default=datetime.utcnow)
-    duracao = db.Column(db.String(10))  # Para mamadas (MM:SS)
+    duracao = db.Column(db.String(10))
     observacao = db.Column(db.Text)
-    
-    def __repr__(self):
-        return f'<Registro {self.tipo} - {self.data_hora}>'

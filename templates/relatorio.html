@@ -1,527 +1,68 @@
-from kivy.app import App
-from kivy.uix.boxlayout import BoxLayout
-from kivy.uix.label import Label
-from kivy.uix.textinput import TextInput
-from kivy.uix.button import Button
-from kivy.uix.gridlayout import GridLayout
-from kivy.uix.scrollview import ScrollView
-from kivy.uix.popup import Popup
-from kivy.clock import Clock
-from kivy.core.window import Window
-from kivy.graphics import Color, RoundedRectangle
-from datetime import datetime, timedelta
-import json
+{% extends "base.html" %}
 
-# ========== CORES COM ALTO CONTRASTE ==========
-COR_FUNDO = (0.98, 0.97, 0.98, 1)        # Quase branco
-COR_ROSA = (0.85, 0.25, 0.48, 1)         # Rosa forte (contraste bom)
-COR_ROSA_CLARO = (1, 0.92, 0.95, 1)      # Fundo rosa claro
-COR_VERDE = (0.15, 0.75, 0.45, 1)        # Verde forte
-COR_AZUL = (0.1, 0.55, 0.9, 1)           # Azul forte
-COR_LARANJA = (1, 0.55, 0.1, 1)          # Laranja forte
-COR_VERMELHO = (0.85, 0.15, 0.15, 1)     # Vermelho forte
-COR_ROXO = (0.55, 0.25, 0.8, 1)          # Roxo forte
-COR_DOURADO = (1, 0.75, 0.15, 1)         # Dourado
-COR_TEXTO = (0.1, 0.05, 0.1, 1)          # Preto suave
-COR_BRANCO = (1, 1, 1, 1)                # Branco
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow-lg">
+            <div class="card-body">
+                <h4 class="text-pink">
+                    <i class="bi bi-graph-up"></i> Relatório dos Últimos 7 Dias
+                </h4>
+            </div>
+        </div>
+    </div>
+</div>
 
-Window.clearcolor = COR_FUNDO
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card shadow-lg">
+            <div class="card-body">
+                {% if dados %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Data</th>
+                                    <th class="text-center">🍼 Mamadas</th>
+                                    <th class="text-center">💩 Coco</th>
+                                    <th class="text-center">💦 Xixi</th>
+                                    <th class="text-center">😴 Sono</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for dia in dados %}
+                                <tr>
+                                    <td>{{ dia.data }}</td>
+                                    <td class="text-center"><span class="badge bg-pink">{{ dia.mamadas }}</span></td>
+                                    <td class="text-center"><span class="badge bg-warning">{{ dia.coco }}</span></td>
+                                    <td class="text-center"><span class="badge bg-success">{{ dia.xixi }}</span></td>
+                                    <td class="text-center"><span class="badge bg-info">{{ dia.sono }}</span></td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <p class="text-muted">Nenhum dado disponível.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
 
-class MamaApp(App):
-    def build(self):
-        return MainScreen()
-
-class MainScreen(BoxLayout):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.orientation = 'vertical'
-        self.padding = 10
-        self.spacing = 8
-        
-        # Dados
-        self.dados = self.carregar_dados()
-        self.registros = self.dados.get('registros', [])
-        self.nome_mae = self.dados.get('nome_mae', '')
-        self.nome_bebe = self.dados.get('nome_bebe', '')
-        self.data_nasc = self.dados.get('data_nasc', '')
-        self.hora_nasc = self.dados.get('hora_nasc', '')
-        self.peso_bebe = self.dados.get('peso_bebe', '')
-        
-        # Estado da mamada
-        self.mamada_ativa = False
-        self.mamada_inicio = None
-        
-        self.criar_interface()
-        Clock.schedule_interval(self.atualizar_tudo, 30)
-        Clock.schedule_interval(self.verificar_lembrete, 60)
-        self.atualizar_tudo(None)
-    
-    def criar_interface(self):
-        # ===== HEADER =====
-        header = BoxLayout(orientation='vertical', size_hint_y=None, height=80)
-        with header.canvas.before:
-            Color(*COR_ROSA, 0.12)
-            self.rect_header = RoundedRectangle(pos=header.pos, size=header.size, radius=[15])
-        header.bind(pos=self.atualizar_rect, size=self.atualizar_rect)
-        
-        titulo = Label(text='MAMAE E BEBE', font_size='26sp', color=COR_ROSA, bold=True)
-        header.add_widget(titulo)
-        self.add_widget(header)
-        
-        # ===== SCROLL =====
-        scroll = ScrollView()
-        conteudo = GridLayout(cols=1, spacing=10, size_hint_y=None)
-        conteudo.bind(minimum_height=conteudo.setter('height'))
-        
-        # ===== CARD: DADOS =====
-        card = self.criar_card('DADOS DO BEBE', 340)
-        
-        # Mae
-        linha = BoxLayout(size_hint_y=None, height=35)
-        linha.add_widget(Label(text='Mamae:', size_hint_x=0.22, color=COR_TEXTO))
-        self.nome_mae_input = TextInput(text=self.nome_mae, hint_text='Seu nome', size_hint_x=0.78, 
-                                       background_color=COR_BRANCO, foreground_color=COR_TEXTO)
-        linha.add_widget(self.nome_mae_input)
-        card.add_widget(linha)
-        
-        # Bebe
-        linha = BoxLayout(size_hint_y=None, height=35)
-        linha.add_widget(Label(text='Bebe:', size_hint_x=0.22, color=COR_TEXTO))
-        self.nome_bebe_input = TextInput(text=self.nome_bebe, hint_text='Nome do bebe', size_hint_x=0.78,
-                                       background_color=COR_BRANCO, foreground_color=COR_TEXTO)
-        linha.add_widget(self.nome_bebe_input)
-        card.add_widget(linha)
-        
-        # Peso
-        linha = BoxLayout(size_hint_y=None, height=35)
-        linha.add_widget(Label(text='Peso(kg):', size_hint_x=0.22, color=COR_TEXTO))
-        self.peso_input = TextInput(text=self.peso_bebe, hint_text='Ex: 3.2', size_hint_x=0.78,
-                                  background_color=COR_BRANCO, foreground_color=COR_TEXTO)
-        linha.add_widget(self.peso_input)
-        card.add_widget(linha)
-        
-        # Data
-        linha = BoxLayout(size_hint_y=None, height=35)
-        linha.add_widget(Label(text='Nascimento:', size_hint_x=0.22, color=COR_TEXTO))
-        self.data_input = TextInput(text=self.data_nasc, hint_text='DD/MM/AAAA', size_hint_x=0.78,
-                                  background_color=COR_BRANCO, foreground_color=COR_TEXTO)
-        linha.add_widget(self.data_input)
-        card.add_widget(linha)
-        
-        # Hora
-        linha = BoxLayout(size_hint_y=None, height=35)
-        linha.add_widget(Label(text='Hora:', size_hint_x=0.22, color=COR_TEXTO))
-        self.hora_input = TextInput(text=self.hora_nasc, hint_text='HH:MM', size_hint_x=0.78,
-                                  background_color=COR_BRANCO, foreground_color=COR_TEXTO)
-        linha.add_widget(self.hora_input)
-        card.add_widget(linha)
-        
-        btn_salvar = Button(text='SALVAR DADOS', background_color=COR_ROSA, color=COR_BRANCO, bold=True, size_hint_y=None, height=40)
-        btn_salvar.bind(on_press=self.salvar_dados)
-        card.add_widget(btn_salvar)
-        
-        conteudo.add_widget(card)
-        
-        # ===== IDADE E PESO =====
-        card = self.criar_card('', 60)
-        self.idade_label = Label(text='', font_size='18sp', color=COR_ROSA, bold=True)
-        card.add_widget(self.idade_label)
-        conteudo.add_widget(card)
-        
-        # ===== STATUS RÁPIDO =====
-        card = self.criar_card('STATUS DO BEBE', 90)
-        self.status_label = Label(text='', color=COR_TEXTO, font_size='15sp')
-        card.add_widget(self.status_label)
-        conteudo.add_widget(card)
-        
-        # ===== MAMADA (BOTÃO PRINCIPAL) =====
-        card = BoxLayout(orientation='vertical', padding=15, size_hint_y=None, height=120)
-        with card.canvas.before:
-            Color(*COR_ROSA, 0.15)
-            self.rect_card2 = RoundedRectangle(pos=card.pos, size=card.size, radius=[15])
-        card.bind(pos=self.atualizar_rect_card2, size=self.atualizar_rect_card2)
-        
-        self.btn_mamar = Button(text='MAMAR', 
-                               background_color=COR_VERDE,
-                               color=COR_BRANCO,
-                               bold=True,
-                               font_size='24sp',
-                               size_hint_y=None,
-                               height=60)
-        self.btn_mamar.bind(on_press=self.iniciar_mamada)
-        card.add_widget(self.btn_mamar)
-        
-        self.tempo_label = Label(text='Tempo: 00:00', color=COR_TEXTO, font_size='16sp')
-        card.add_widget(self.tempo_label)
-        
-        conteudo.add_widget(card)
-        
-        # ===== BOTOES DE MONITORAMENTO =====
-        card = self.criar_card('REGISTRAR ATIVIDADES', 200)
-        grid = GridLayout(cols=3, spacing=8, size_hint_y=None, height=155)
-        
-        botoes = [
-            ('COCO', self.registrar_coco, COR_ROXO),
-            ('XIXI', self.registrar_xixi, COR_AZUL),
-            ('REGURGITO', self.registrar_regurgito, COR_LARANJA),
-            ('DORMIR', self.registrar_sono, COR_VERDE),
-            ('RELATORIO', self.mostrar_relatorio, COR_DOURADO),
-            ('VACINAS', self.mostrar_vacinas, COR_ROSA)
-        ]
-        
-        for texto, func, cor in botoes:
-            btn = Button(text=texto, background_color=cor, color=COR_BRANCO, bold=True, font_size='13sp')
-            btn.bind(on_press=func)
-            grid.add_widget(btn)
-        
-        card.add_widget(grid)
-        conteudo.add_widget(card)
-        
-        # ===== CONTADOR DE MAMADAS =====
-        card = self.criar_card('MAMADAS DE HOJE', 100)
-        
-        grid_mamadas = GridLayout(cols=3, spacing=10, size_hint_y=None, height=50)
-        grid_mamadas.add_widget(Label(text='Total:', color=COR_TEXTO, bold=True))
-        self.total_mamadas_label = Label(text='0', color=COR_ROSA, bold=True, font_size='20sp')
-        grid_mamadas.add_widget(self.total_mamadas_label)
-        
-        grid_mamadas.add_widget(Label(text='', color=COR_TEXTO))
-        
-        card.add_widget(grid_mamadas)
-        
-        # Ultima mamada
-        self.ultima_mamada_label = Label(text='Ultima mamada: --', color=COR_TEXTO, font_size='12sp')
-        card.add_widget(self.ultima_mamada_label)
-        
-        conteudo.add_widget(card)
-        
-        # ===== ULTIMOS REGISTROS =====
-        card = self.criar_card('ULTIMAS ATIVIDADES', 150)
-        self.ultimos_label = Label(text='', color=COR_TEXTO, size_hint_y=None, height=110, 
-                                   text_size=(Window.width-60, None), halign='left')
-        card.add_widget(self.ultimos_label)
-        conteudo.add_widget(card)
-        
-        scroll.add_widget(conteudo)
-        self.add_widget(scroll)
-        
-        self.atualizar_tudo(None)
-    
-    def criar_card(self, titulo, altura):
-        card = BoxLayout(orientation='vertical', spacing=8, padding=12, size_hint_y=None, height=altura)
-        with card.canvas.before:
-            Color(1, 0.95, 0.97, 0.9)
-            self.rect_card = RoundedRectangle(pos=card.pos, size=card.size, radius=[12])
-        card.bind(pos=self.atualizar_rect_card, size=self.atualizar_rect_card)
-        if titulo:
-            card.add_widget(Label(text=titulo, font_size='15sp', bold=True, color=COR_ROSA))
-        return card
-    
-    def atualizar_rect(self, instance, value):
-        self.rect_header.pos = instance.pos
-        self.rect_header.size = instance.size
-    
-    def atualizar_rect_card(self, instance, value):
-        self.rect_card.pos = instance.pos
-        self.rect_card.size = instance.size
-    
-    def atualizar_rect_card2(self, instance, value):
-        self.rect_card2.pos = instance.pos
-        self.rect_card2.size = instance.size
-    
-    def carregar_dados(self):
-        try:
-            with open('dados_bebe.json', 'r') as f:
-                return json.load(f)
-        except:
-            return {'nome_mae': '', 'nome_bebe': '', 'data_nasc': '', 'hora_nasc': '', 'peso_bebe': '', 'registros': []}
-    
-    def salvar_dados(self, instance):
-        self.dados = {
-            'nome_mae': self.nome_mae_input.text,
-            'nome_bebe': self.nome_bebe_input.text,
-            'data_nasc': self.data_input.text,
-            'hora_nasc': self.hora_input.text,
-            'peso_bebe': self.peso_input.text,
-            'registros': self.registros
-        }
-        with open('dados_bebe.json', 'w') as f:
-            json.dump(self.dados, f)
-        
-        self.nome_mae = self.nome_mae_input.text
-        self.nome_bebe = self.nome_bebe_input.text
-        self.data_nasc = self.data_input.text
-        self.hora_nasc = self.hora_input.text
-        self.peso_bebe = self.peso_input.text
-        
-        self.atualizar_tudo(None)
-        self.mostrar_popup('Dados salvos com sucesso!')
-    
-    def calcular_idade(self):
-        try:
-            if not self.data_nasc or not self.hora_nasc:
-                return 'Preencha os dados'
-            nasc = datetime.strptime(self.data_nasc + ' ' + self.hora_nasc, '%d/%m/%Y %H:%M')
-            diff = datetime.now() - nasc
-            dias = diff.days
-            
-            if dias > 30:
-                return f'{dias//30}m e {dias%30}d'
-            elif dias > 0:
-                return f'{dias}d'
-            else:
-                horas = diff.seconds // 3600
-                return f'{horas}h'
-        except:
-            return 'Preencha data/hora'
-    
-    # ===== MAMADA INTEGRADA =====
-    def iniciar_mamada(self, instance):
-        if not self.nome_bebe:
-            self.mostrar_popup('Cadastre o bebe primeiro!')
-            return
-        
-        if not self.mamada_ativa:
-            # INICIAR MAMADA
-            self.mamada_ativa = True
-            self.mamada_inicio = datetime.now()
-            self.btn_mamar.text = 'PARAR MAMADA'
-            self.btn_mamar.background_color = COR_VERMELHO
-            self.mostrar_popup('Mamada iniciada! Clique em PARAR quando terminar.')
-        else:
-            # PARAR MAMADA - REGISTRA AUTOMATICAMENTE
-            fim = datetime.now()
-            duracao = fim - self.mamada_inicio
-            minutos = int(duracao.total_seconds() // 60)
-            segundos = int(duracao.total_seconds() % 60)
-            tempo_str = f'{minutos:02d}:{segundos:02d}'
-            
-            agora = datetime.now().strftime('%d/%m/%Y %H:%M')
-            self.registros.append({'tipo': 'Mamou', 'data': agora, 'duracao': tempo_str})
-            
-            self.dados['registros'] = self.registros
-            with open('dados_bebe.json', 'w') as f:
-                json.dump(self.dados, f)
-            
-            self.mamada_ativa = False
-            self.mamada_inicio = None
-            self.btn_mamar.text = 'MAMAR'
-            self.btn_mamar.background_color = COR_VERDE
-            self.tempo_label.text = 'Tempo: 00:00'
-            
-            mae = self.nome_mae or 'Mamae'
-            bebe = self.nome_bebe or 'bebe'
-            
-            msg = f'{mae}, {bebe} mamou por {tempo_str}!\n\n'
-            if minutos < 5:
-                msg += 'Dica: Tente oferecer mais tempo de mamada.'
-            elif minutos >= 15:
-                msg += 'Otimo tempo de mamada!'
-            else:
-                msg += 'Mamada com duracao adequada!'
-            
-            self.mostrar_popup(msg)
-            self.atualizar_tudo(None)
-    
-    def atualizar_cronometro(self):
-        if self.mamada_ativa and self.mamada_inicio:
-            diff = datetime.now() - self.mamada_inicio
-            minutos = int(diff.total_seconds() // 60)
-            segundos = int(diff.total_seconds() % 60)
-            self.tempo_label.text = f'Tempo: {minutos:02d}:{segundos:02d}'
-    
-    # ===== REGISTROS =====
-    def registrar_evento(self, tipo, msg):
-        if not self.nome_bebe:
-            self.mostrar_popup('Cadastre o bebe primeiro!')
-            return
-        
-        agora = datetime.now().strftime('%d/%m/%Y %H:%M')
-        self.registros.append({'tipo': tipo, 'data': agora})
-        
-        self.dados['registros'] = self.registros
-        with open('dados_bebe.json', 'w') as f:
-            json.dump(self.dados, f)
-        
-        self.mostrar_popup(msg)
-        self.atualizar_tudo(None)
-    
-    def registrar_coco(self, instance):
-        mae = self.nome_mae or 'Mamae'
-        bebe = self.nome_bebe
-        self.registrar_evento('Fez Coco', f'{mae}, {bebe} fez coco! Cor amarela = saudavel.')
-    
-    def registrar_xixi(self, instance):
-        mae = self.nome_mae or 'Mamae'
-        bebe = self.nome_bebe
-        self.registrar_evento('Fez Xixi', f'{mae}, {bebe} fez xixi! Continue hidratando.')
-    
-    def registrar_regurgito(self, instance):
-        mae = self.nome_mae or 'Mamae'
-        bebe = self.nome_bebe
-        self.registrar_evento('Regurgitou', f'{mae}, {bebe} regurgitou. Mantenha em pe apos mamar.')
-    
-    def registrar_sono(self, instance):
-        mae = self.nome_mae or 'Mamae'
-        bebe = self.nome_bebe
-        self.registrar_evento('Dormiu', f'{mae}, {bebe} dormiu! O sono e essencial.')
-    
-    # ===== VERIFICAR LEMBRETE =====
-    def verificar_lembrete(self, dt):
-        if not self.nome_bebe or not self.registros:
-            return
-        
-        hoje = datetime.now().strftime('%d/%m/%Y')
-        registros_hoje = [r for r in self.registros if r['data'].startswith(hoje)]
-        mamadas = [r for r in registros_hoje if r['tipo'] == 'Mamou']
-        
-        if mamadas:
-            ultima = datetime.strptime(mamadas[-1]['data'], '%d/%m/%Y %H:%M')
-            diff = datetime.now() - ultima
-            
-            if diff.total_seconds() > 10800:  # 3 horas
-                mae = self.nome_mae or 'Mamae'
-                bebe = self.nome_bebe
-                self.mostrar_popup(f'{mae}, ja faz 3h desde a ultima mamada de {bebe}. Hora de mamar!')
-    
-    # ===== VACINAS =====
-    def mostrar_vacinas(self, instance):
-        texto = 'CALENDARIO DE VACINAS\n\n'
-        texto += 'Consulte o pediatra para confirmar!\n\n'
-        vacinas = [
-            'BCG - Ao nascer',
-            'Hepatite B - Ao nascer',
-            'Penta - 2, 4, 6 meses',
-            'VIP - 2, 4, 6 meses',
-            'Pneumococica - 2, 4, 6 meses',
-            'Rotavirus - 2, 4 meses',
-            'Meningococica C - 3, 5 meses',
-            'Triviral Viral - 12 meses'
-        ]
-        for v in vacinas:
-            texto += f'- {v}\n'
-        self.mostrar_popup(texto)
-    
-    # ===== RELATORIO =====
-    def mostrar_relatorio(self, instance):
-        if not self.registros:
-            self.mostrar_popup('Nenhum registro ainda!')
-            return
-        
-        hoje = datetime.now().strftime('%d/%m/%Y')
-        registros_hoje = [r for r in self.registros if r['data'].startswith(hoje)]
-        
-        mae = self.nome_mae or 'Mamae'
-        bebe = self.nome_bebe or 'Bebe'
-        
-        texto = f'RELATORIO - {hoje}\n\n'
-        texto += f'Mae: {mae}\n'
-        texto += f'Bebe: {bebe}\n'
-        texto += f'Peso: {self.peso_bebe or "--"}kg\n'
-        texto += '=' * 30 + '\n\n'
-        
-        if registros_hoje:
-            mamadas = len([r for r in registros_hoje if r['tipo'] == 'Mamou'])
-            coco = len([r for r in registros_hoje if r['tipo'] == 'Fez Coco'])
-            xixi = len([r for r in registros_hoje if r['tipo'] == 'Fez Xixi'])
-            sono = len([r for r in registros_hoje if r['tipo'] == 'Dormiu'])
-            regurgito = len([r for r in registros_hoje if r['tipo'] == 'Regurgitou'])
-            
-            texto += f'Mamadas: {mamadas}x\n'
-            texto += f'Coco: {coco}x\n'
-            texto += f'Xixi: {xixi}x\n'
-            texto += f'Sono: {sono}x\n'
-            texto += f'Regurgito: {regurgito}x\n\n'
-            
-            texto += 'AVALIACAO:\n'
-            if mamadas >= 8:
-                texto += 'Amamentacao: OTIMA\n'
-            elif mamadas >= 5:
-                texto += 'Amamentacao: REGULAR\n'
-            else:
-                texto += 'Amamentacao: BAIXA\n'
-            
-            if xixi >= 6:
-                texto += 'Hidratacao: OTIMA\n'
-            else:
-                texto += 'Hidratacao: BAIXA\n'
-        else:
-            texto += 'Nenhuma atividade registrada hoje.'
-        
-        self.mostrar_popup(texto)
-    
-    def atualizar_tudo(self, dt):
-        self.atualizar_cronometro()
-        self.atualizar_contadores()
-        self.atualizar_status()
-        self.atualizar_ultimos_registros()
-        
-        nome = self.nome_bebe or 'Bebe'
-        idade = self.calcular_idade()
-        peso = self.peso_bebe or '--'
-        self.idade_label.text = f'{nome} - {idade}  |  Peso: {peso}kg'
-    
-    def atualizar_contadores(self):
-        hoje = datetime.now().strftime('%d/%m/%Y')
-        registros_hoje = [r for r in self.registros if r['data'].startswith(hoje)]
-        mamadas = len([r for r in registros_hoje if r['tipo'] == 'Mamou'])
-        self.total_mamadas_label.text = str(mamadas)
-        
-        # Ultima mamada
-        mamadas_hoje = [r for r in registros_hoje if r['tipo'] == 'Mamou']
-        if mamadas_hoje:
-            ultima = mamadas_hoje[-1]['data'].split()[1]
-            self.ultima_mamada_label.text = f'Ultima mamada: {ultima}'
-        else:
-            self.ultima_mamada_label.text = 'Ultima mamada: --'
-    
-    def atualizar_status(self):
-        if not self.nome_bebe or not self.registros:
-            self.status_label.text = 'Cadastre o bebe e comece a monitorar!'
-            return
-        
-        hoje = datetime.now().strftime('%d/%m/%Y')
-        registros_hoje = [r for r in self.registros if r['data'].startswith(hoje)]
-        
-        mamadas = len([r for r in registros_hoje if r['tipo'] == 'Mamou'])
-        xixi = len([r for r in registros_hoje if r['tipo'] == 'Fez Xixi'])
-        
-        status = []
-        if mamadas >= 8:
-            status.append('Amamentacao: OTIMA')
-        elif mamadas >= 5:
-            status.append('Amamentacao: REGULAR')
-        else:
-            status.append('Amamentacao: BAIXA')
-        
-        if xixi >= 6:
-            status.append('Hidratacao: OTIMA')
-        elif xixi >= 3:
-            status.append('Hidratacao: REGULAR')
-        else:
-            status.append('Hidratacao: BAIXA')
-        
-        self.status_label.text = ' | '.join(status)
-    
-    def atualizar_ultimos_registros(self):
-        if self.registros:
-            ultimos = self.registros[-5:][::-1]
-            texto = '\n'.join([f'- {r["tipo"]} - {r["data"]}' for r in ultimos])
-            self.ultimos_label.text = texto
-        else:
-            self.ultimos_label.text = 'Nenhum registro ainda'
-    
-    def mostrar_popup(self, texto):
-        layout = BoxLayout(orientation='vertical', spacing=10, padding=20)
-        label = Label(text=texto, text_size=(380, None), halign='left', color=COR_TEXTO, font_size='14sp')
-        layout.add_widget(label)
-        
-        btn = Button(text='Fechar', background_color=COR_ROSA, color=COR_BRANCO, bold=True, size_hint_y=None, height=45)
-        layout.add_widget(btn)
-        
-        popup = Popup(title='', content=layout, size_hint=(0.9, 0.7))
-        btn.bind(on_press=popup.dismiss)
-        popup.open()
-
-if __name__ == '__main__':
-    MamaApp().run()
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card shadow-lg">
+            <div class="card-body">
+                <h5 class="text-pink"><i class="bi bi-lightbulb"></i> Dicas</h5>
+                <ul class="list-unstyled">
+                    <li class="mb-2">✅ <strong>Amamentação:</strong> 8-12 mamadas por dia é o ideal</li>
+                    <li class="mb-2">✅ <strong>Hidratação:</strong> Mínimo 6 fraldas molhadas por dia</li>
+                    <li class="mb-2">✅ <strong>Sono:</strong> Recém-nascidos dormem 16-20h por dia</li>
+                    <li class="mb-2">✅ <strong>Cocô:</strong> Amamentação: até 7 dias sem cocô é normal</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
