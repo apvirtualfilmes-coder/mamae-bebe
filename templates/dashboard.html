@@ -25,7 +25,6 @@
                     </div>
                 </div>
                 
-                <!-- ALERTA DE MAMADAS -->
                 {% if alerta_mamada %}
                 <div class="row mt-2">
                     <div class="col-12">
@@ -217,12 +216,12 @@
             <div class="card-body">
                 <h5 class="texto-primario"><i class="bi bi-plus-circle"></i> Registrar Atividade</h5>
                 <div class="row g-2">
-                    <div class="col-6 col-md-2">
+                    <div class="col-4 col-md-2">
                         <button type="button" class="btn btn-warning w-100" data-bs-toggle="modal" data-bs-target="#modalCoco">
                             <i class="bi bi-emoji-smile"></i><br>Cocô
                         </button>
                     </div>
-                    <div class="col-6 col-md-2">
+                    <div class="col-4 col-md-2">
                         <form method="POST" action="{{ url_for('registrar') }}">
                             <input type="hidden" name="tipo" value="Xixi">
                             <button type="submit" class="btn btn-success w-100">
@@ -230,7 +229,7 @@
                             </button>
                         </form>
                     </div>
-                    <div class="col-6 col-md-2">
+                    <div class="col-4 col-md-2">
                         <form method="POST" action="{{ url_for('registrar') }}">
                             <input type="hidden" name="tipo" value="Regurgito">
                             <button type="submit" class="btn btn-danger w-100">
@@ -238,32 +237,32 @@
                             </button>
                         </form>
                     </div>
-                    <div class="col-6 col-md-2">
+                    <div class="col-4 col-md-2">
                         <button type="button" class="btn btn-info w-100" data-bs-toggle="modal" data-bs-target="#modalBanho">
                             <i class="bi bi-droplet-half"></i><br>Banho
                         </button>
                     </div>
-                    <div class="col-6 col-md-2">
+                    <div class="col-4 col-md-2">
                         <button type="button" class="btn btn-danger w-100" data-bs-toggle="modal" data-bs-target="#modalFebre">
                             <i class="bi bi-thermometer"></i><br>Febre
                         </button>
                     </div>
-                    <div class="col-6 col-md-2">
+                    <div class="col-4 col-md-2">
                         <button type="button" class="btn btn-secondary w-100" data-bs-toggle="modal" data-bs-target="#modalNariz">
                             <i class="bi bi-nose"></i><br>Nariz Entupido
                         </button>
                     </div>
-                    <div class="col-6 col-md-2">
+                    <div class="col-4 col-md-2">
                         <button type="button" class="btn btn-primary w-100" data-bs-toggle="modal" data-bs-target="#modalPeso">
                             <i class="bi bi-weight-scale"></i><br>Peso
                         </button>
                     </div>
-                    <div class="col-6 col-md-2">
+                    <div class="col-4 col-md-2">
                         <button type="button" class="btn btn-purple w-100" data-bs-toggle="modal" data-bs-target="#modalVacina">
                             <i class="bi bi-syringe"></i><br>Vacina
                         </button>
                     </div>
-                    <div class="col-6 col-md-2">
+                    <div class="col-4 col-md-2">
                         <a href="{{ url_for('relatorio') }}" class="btn btn-primario w-100">
                             <i class="bi bi-file-text"></i><br>Relatório
                         </a>
@@ -399,10 +398,202 @@
 </div>
 {% endif %}
 
-<!-- TODOS OS MODAIS AQUI (Coco, Banho, Febre, Nariz, Peso, Vacina) - manter iguais -->
+<!-- ========== MODAIS ========== -->
+
+<!-- MODAL COCÔ -->
+<div class="modal fade" id="modalCoco" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content" style="background: var(--cor-fundo-card); color: var(--cor-texto);">
+            <div class="modal-header">
+                <h5 class="modal-title" style="color: var(--cor-texto) !important;">Registrar Cocô</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{{ url_for('registrar') }}">
+                <div class="modal-body">
+                    <input type="hidden" name="tipo" value="Coco">
+                    <div class="mb-3">
+                        <label style="color: var(--cor-texto) !important;" class="form-label">Cor do Cocô</label>
+                        <select name="cor_coco" class="form-select form-control-leag" required>
+                            <option value="amarela">Amarela (normal)</option>
+                            <option value="verde">Verde (pode indicar alergia)</option>
+                            <option value="marrom">Marrom</option>
+                            <option value="preta">Preta (consulte pediatra)</option>
+                            <option value="branca">Branca (consulte pediatra)</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label style="color: var(--cor-texto) !important;" class="form-label">Consistência</label>
+                        <select name="consistencia_coco" class="form-select form-control-leag" required>
+                            <option value="pastosa">Pastosa (normal)</option>
+                            <option value="liquida">Líquida (diarreia)</option>
+                            <option value="dura">Dura (prisão de ventre)</option>
+                            <option value="com_muco">Com muco (consulte pediatra)</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primario">Registrar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL BANHO -->
+<div class="modal fade" id="modalBanho" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content" style="background: var(--cor-fundo-card); color: var(--cor-texto);">
+            <div class="modal-header">
+                <h5 class="modal-title" style="color: var(--cor-texto) !important;">Registrar Banho</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{{ url_for('registrar_banho') }}">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label style="color: var(--cor-texto) !important;" class="form-label">Data e Hora</label>
+                        <input type="datetime-local" class="form-control form-control-leag" name="data_hora" required>
+                    </div>
+                    <div class="mb-3">
+                        <label style="color: var(--cor-texto) !important;" class="form-label">Duração (minutos)</label>
+                        <input type="number" class="form-control form-control-leag" name="duracao" placeholder="Ex: 10">
+                    </div>
+                    <div class="mb-3">
+                        <label style="color: var(--cor-texto) !important;" class="form-label">Observação</label>
+                        <textarea class="form-control form-control-leag" name="observacao" rows="2"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primario">Registrar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL FEBRE -->
+<div class="modal fade" id="modalFebre" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content" style="background: var(--cor-fundo-card); color: var(--cor-texto);">
+            <div class="modal-header">
+                <h5 class="modal-title" style="color: var(--cor-texto) !important;">Registrar Febre</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{{ url_for('registrar_febre') }}">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label style="color: var(--cor-texto) !important;" class="form-label">Temperatura (°C)</label>
+                        <input type="number" step="0.1" class="form-control form-control-leag" name="temperatura" placeholder="Ex: 37.5" required>
+                    </div>
+                    <div class="mb-3">
+                        <label style="color: var(--cor-texto) !important;" class="form-label">Observação</label>
+                        <textarea class="form-control form-control-leag" name="observacao" rows="2"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primario">Registrar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL NARIZ ENTUPIDO -->
+<div class="modal fade" id="modalNariz" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content" style="background: var(--cor-fundo-card); color: var(--cor-texto);">
+            <div class="modal-header">
+                <h5 class="modal-title" style="color: var(--cor-texto) !important;">Registrar Nariz Entupido</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{{ url_for('registrar_nariz') }}">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label style="color: var(--cor-texto) !important;" class="form-label">Observação</label>
+                        <textarea class="form-control form-control-leag" name="observacao" rows="2"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primario">Registrar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL PESO -->
+<div class="modal fade" id="modalPeso" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content" style="background: var(--cor-fundo-card); color: var(--cor-texto);">
+            <div class="modal-header">
+                <h5 class="modal-title" style="color: var(--cor-texto) !important;">Registrar Peso</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{{ url_for('registrar_peso') }}">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label style="color: var(--cor-texto) !important;" class="form-label">Peso (kg)</label>
+                        <input type="number" step="0.1" class="form-control form-control-leag" name="peso" placeholder="Ex: 5.2" required>
+                    </div>
+                    <div class="mb-3">
+                        <label style="color: var(--cor-texto) !important;" class="form-label">Altura (cm)</label>
+                        <input type="number" step="0.5" class="form-control form-control-leag" name="altura" placeholder="Ex: 62">
+                    </div>
+                    <div class="mb-3">
+                        <label style="color: var(--cor-texto) !important;" class="form-label">Data</label>
+                        <input type="date" class="form-control form-control-leag" name="data">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primario">Registrar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL VACINA -->
+<div class="modal fade" id="modalVacina" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content" style="background: var(--cor-fundo-card); color: var(--cor-texto);">
+            <div class="modal-header">
+                <h5 class="modal-title" style="color: var(--cor-texto) !important;">Registrar Vacina</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{{ url_for('registrar_vacina') }}">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label style="color: var(--cor-texto) !important;" class="form-label">Nome da Vacina</label>
+                        <input type="text" class="form-control form-control-leag" name="nome" placeholder="Ex: BCG" required>
+                    </div>
+                    <div class="mb-3">
+                        <label style="color: var(--cor-texto) !important;" class="form-label">Data de Aplicação</label>
+                        <input type="date" class="form-control form-control-leag" name="data_aplicacao">
+                    </div>
+                    <div class="mb-3">
+                        <label style="color: var(--cor-texto) !important;" class="form-label">Próxima Dose</label>
+                        <input type="date" class="form-control form-control-leag" name="proxima_dose">
+                    </div>
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" class="form-check-input" name="aplicada" checked>
+                        <label class="form-check-label" style="color: var(--cor-texto) !important;">Já foi aplicada</label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primario">Registrar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 
 <script>
-// MAMADA
+// ===== MAMADA =====
 let cronometroInterval = null;
 let segundos = 0;
 let minutos = 0;
@@ -462,7 +653,7 @@ function pararMamada() {
     });
 }
 
-// SONO
+// ===== SONO =====
 let sonoInterval = null;
 let sonoSegundos = 0;
 let sonoMinutos = 0;
@@ -519,7 +710,7 @@ function pararSono() {
     });
 }
 
-// BEBÊZINHO
+// ===== BEBÊZINHO =====
 function atualizarStatusBichinho() {
     fetch('/api/humor_bichinho')
         .then(response => response.json())
