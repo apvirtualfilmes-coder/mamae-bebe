@@ -14,13 +14,11 @@
                     O humor do bichinho reflete como o bebê está se sentindo
                 </p>
                 
-                <!-- Imagem do Bichinho -->
+                <!-- Emoji do Bichinho -->
                 <div class="my-4">
-                    <img id="imagemBichinho" 
-                         src="{{ url_for('static', filename='bichinho/neutro.png') }}" 
-                         alt="Bichinho Virtual"
-                         class="img-fluid"
-                         style="max-width: 200px; border-radius: 20px; image-rendering: auto;">
+                    <div id="emojiBichinho" style="font-size: 150px; line-height: 1.2;">
+                        😐
+                    </div>
                     <h5 id="humorTexto" class="mt-2 texto-primario">Neutro 😐</h5>
                 </div>
                 
@@ -110,16 +108,16 @@
 </div>
 
 <script>
-// Mapeamento de humores para imagens
-const imagens = {
-    'feliz': "{{ url_for('static', filename='bichinho/feliz.png') }}",
-    'brincalhao': "{{ url_for('static', filename='bichinho/brincalhao.png') }}",
-    'com_fome': "{{ url_for('static', filename='bichinho/com_fome.png') }}",
-    'com_sono': "{{ url_for('static', filename='bichinho/com_sono.png') }}",
-    'brabo': "{{ url_for('static', filename='bichinho/brabo.png') }}",
-    'doente': "{{ url_for('static', filename='bichinho/doente.png') }}",
-    'maluco': "{{ url_for('static', filename='bichinho/maluco.png') }}",
-    'neutro': "{{ url_for('static', filename='bichinho/neutro.png') }}"
+// Mapeamento de humores para emojis
+const emojis = {
+    'feliz': '😊',
+    'brincalhao': '😄',
+    'com_fome': '😋',
+    'com_sono': '😴',
+    'brabo': '😠',
+    'doente': '😷',
+    'maluco': '🤪',
+    'neutro': '😐'
 };
 
 const nomesHumores = {
@@ -138,11 +136,8 @@ function atualizarBichinho() {
         .then(response => response.json())
         .then(data => {
             if (data.humor) {
-                // Atualizar imagem
-                const img = document.getElementById('imagemBichinho');
-                if (imagens[data.humor]) {
-                    img.src = imagens[data.humor];
-                }
+                // Atualizar emoji
+                document.getElementById('emojiBichinho').textContent = emojis[data.humor] || '😐';
                 
                 // Atualizar textos
                 document.getElementById('humorBichinho').textContent = data.humor;
