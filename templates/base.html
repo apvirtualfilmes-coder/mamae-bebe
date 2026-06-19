@@ -7,7 +7,6 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     <style>
-        /* ===== CORES DINÂMICAS ===== */
         :root {
             --cor-primaria: 
                 {% if current_user and current_user.cor_tema == 'azul' %}
@@ -44,16 +43,6 @@
                     #333333
                 {% endif %}
             ;
-<<<<<<< HEAD
-=======
-            --cor-texto-claro: 
-                {% if current_user and current_user.modo_noturno %}
-                    #b0b0b0
-                {% else %}
-                    #666666
-                {% endif %}
-            ;
->>>>>>> 5014e6570a2a085a24368cbedb0320496d845b24
         }
         
         body {
@@ -134,10 +123,6 @@
             transform: scale(1.05);
         }
         
-<<<<<<< HEAD
-=======
-        /* Badges */
->>>>>>> 5014e6570a2a085a24368cbedb0320496d845b24
         .badge-mamada-excesso {
             background-color: #dc3545;
             color: white;
@@ -153,10 +138,6 @@
             color: white;
         }
         
-<<<<<<< HEAD
-=======
-        /* Tabela */
->>>>>>> 5014e6570a2a085a24368cbedb0320496d845b24
         .table-leag {
             color: var(--cor-texto);
         }
@@ -166,10 +147,6 @@
             color: var(--cor-primaria);
         }
         
-<<<<<<< HEAD
-=======
-        /* Scroll */
->>>>>>> 5014e6570a2a085a24368cbedb0320496d845b24
         ::-webkit-scrollbar {
             width: 8px;
         }
@@ -260,21 +237,10 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-<<<<<<< HEAD
         setTimeout(function() {
             document.querySelectorAll('.alert').forEach(function(alert) {
                 const closeBtn = alert.querySelector('.btn-close');
                 if (closeBtn) closeBtn.click();
-=======
-        // Auto-dismiss alerts after 5 seconds
-        setTimeout(function() {
-            const alerts = document.querySelectorAll('.alert');
-            alerts.forEach(function(alert) {
-                const closeBtn = alert.querySelector('.btn-close');
-                if (closeBtn) {
-                    closeBtn.click();
-                }
->>>>>>> 5014e6570a2a085a24368cbedb0320496d845b24
             });
         }, 5000);
     </script>

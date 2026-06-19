@@ -10,8 +10,8 @@ class Usuario(UserMixin, db.Model):
     email = db.Column(db.String(100), unique=True, nullable=False)
     senha = db.Column(db.String(200), nullable=False)
     nome_bebe = db.Column(db.String(100))
-    sexo_bebe = db.Column(db.String(20))  # masculino, feminino
-    cor_tema = db.Column(db.String(20), default='rosa')  # rosa, azul
+    sexo_bebe = db.Column(db.String(20))
+    cor_tema = db.Column(db.String(20), default='rosa')
     modo_noturno = db.Column(db.Boolean, default=False)
     data_nasc_bebe = db.Column(db.Date)
     hora_nasc_bebe = db.Column(db.Time)
@@ -23,11 +23,11 @@ class Usuario(UserMixin, db.Model):
 class Registro(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     usuario_id = db.Column(db.Integer, db.ForeignKey('usuario.id'), nullable=False)
-    tipo = db.Column(db.String(50), nullable=False)  # Mamou, Coco, Xixi, Regurgito, Dormiu
-    lado = db.Column(db.String(20))  # direito, esquerdo (para mamada)
-    duracao = db.Column(db.String(10))  # para mamada (MM:SS)
-    cor_coco = db.Column(db.String(50))  # amarela, verde, marrom, etc
-    consistencia_coco = db.Column(db.String(50))  # pastosa, líquida, dura
+    tipo = db.Column(db.String(50), nullable=False)
+    lado = db.Column(db.String(20))
+    duracao = db.Column(db.String(10))
+    cor_coco = db.Column(db.String(50))
+    consistencia_coco = db.Column(db.String(50))
     data_hora = db.Column(db.DateTime, default=datetime.utcnow)
     observacao = db.Column(db.Text)
 

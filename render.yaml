@@ -1,21 +1,13 @@
 services:
   - type: web
-    name: leag-baby
+    name: mamae-bebe-app
     env: python
     buildCommand: pip install -r requirements.txt
     startCommand: gunicorn app:app
     envVars:
       - key: DATABASE_URL
-        fromDatabase:
-          name: leag-baby-db
-          property: connectionString
+        value: postgresql://usuario:senha@host/mamae_bebe
       - key: SECRET_KEY
         generateValue: true
       - key: PYTHON_VERSION
         value: 3.11.0
-
-databases:
-  - name: leag-baby-db
-    databaseName: leag_baby
-    user: leag_baby_user
-    plan: free
