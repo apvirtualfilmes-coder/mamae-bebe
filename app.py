@@ -178,7 +178,6 @@ def cadastrar():
             
             criar_bichinho_inicial(usuario.id)
             
-            # Registrar peso inicial
             if peso:
                 peso_reg = PesoRegistro(
                     usuario_id=usuario.id,
@@ -600,13 +599,16 @@ def api_interagir_bichinho():
         db.session.rollback()
         return jsonify({'error': str(e)}), 500
 
+# ===== ROTAS DE MAMADA CONTÍNUA (NÃO PARA AO SAIR) =====
+
 @app.route('/api/iniciar_mamada', methods=['POST'])
 @login_required
 def api_iniciar_mamada():
     try:
         lado = request.json.get('lado')
-        session['mamada_inicio'] = datetime.now().isoformat()
-        session['mamada_lado'] = lado
+        current_user.inicio_mamada = datetime.now()
+        current_user.inicio_mamada_lado = lado
+        db.session.commit()
         return jsonify({'success': True})
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
@@ -615,13 +617,16 @@ def api_iniciar_mamada():
 @login_required
 def api_parar_mamada():
     try:
-        inicio = datetime.fromisoformat(session.get('mamada_inicio'))
+        inicio = current_user.inicio_mamada
+        if not inicio:
+            return jsonify({'success': False, 'error': 'Nenhuma mamada em andamento'}), 400
+        
         fim = datetime.now()
         duracao = fim - inicio
         minutos = int(duracao.total_seconds() // 60)
         segundos = int(duracao.total_seconds() % 60)
         tempo_str = f'{minutos:02d}:{segundos:02d}'
-        lado = session.get('mamada_lado')
+        lado = current_user.inicio_mamada_lado
         
         registro = Registro(
             usuario_id=current_user.id,
@@ -631,14 +636,15 @@ def api_parar_mamada():
         )
         
         db.session.add(registro)
+        
+        # Limpar o início
+        current_user.inicio_mamada = None
+        current_user.inicio_mamada_lado = None
         db.session.commit()
         
         bichinho = BichinhoVirtual.query.filter_by(usuario_id=current_user.id).first()
         if bichinho:
             atualizar_niveis_bichinho(bichinho)
-        
-        session.pop('mamada_inicio', None)
-        session.pop('mamada_lado', None)
         
         return jsonify({'success': True, 'duracao': tempo_str})
     except Exception as e:
@@ -649,25 +655,28 @@ def api_parar_mamada():
 @login_required
 def api_status_mamada():
     try:
-        if 'mamada_inicio' in session:
-            inicio = datetime.fromisoformat(session['mamada_inicio'])
+        if current_user.inicio_mamada:
+            inicio = current_user.inicio_mamada
             diff = datetime.now() - inicio
             minutos = int(diff.total_seconds() // 60)
             segundos = int(diff.total_seconds() % 60)
             return jsonify({
                 'ativa': True,
                 'tempo': f'{minutos:02d}:{segundos:02d}',
-                'lado': session.get('mamada_lado')
+                'lado': current_user.inicio_mamada_lado or 'direito'
             })
         return jsonify({'ativa': False})
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+# ===== ROTAS DE SONO CONTÍNUO (NÃO PARA AO SAIR) =====
+
 @app.route('/api/iniciar_sono', methods=['POST'])
 @login_required
 def api_iniciar_sono():
     try:
-        session['sono_inicio'] = datetime.now().isoformat()
+        current_user.inicio_sono = datetime.now()
+        db.session.commit()
         return jsonify({'success': True})
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
@@ -676,7 +685,10 @@ def api_iniciar_sono():
 @login_required
 def api_parar_sono():
     try:
-        inicio = datetime.fromisoformat(session.get('sono_inicio'))
+        inicio = current_user.inicio_sono
+        if not inicio:
+            return jsonify({'success': False, 'error': 'Nenhum sono em andamento'}), 400
+        
         fim = datetime.now()
         duracao = fim - inicio
         horas = int(duracao.total_seconds() // 3600)
@@ -691,13 +703,14 @@ def api_parar_sono():
         )
         
         db.session.add(registro)
+        
+        # Limpar o início
+        current_user.inicio_sono = None
         db.session.commit()
         
         bichinho = BichinhoVirtual.query.filter_by(usuario_id=current_user.id).first()
         if bichinho:
             atualizar_niveis_bichinho(bichinho)
-        
-        session.pop('sono_inicio', None)
         
         return jsonify({'success': True, 'duracao': tempo_str})
     except Exception as e:

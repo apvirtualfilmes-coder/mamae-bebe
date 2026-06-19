@@ -19,6 +19,13 @@ class Usuario(UserMixin, db.Model):
     altura_bebe = db.Column(db.Float)
     criado_em = db.Column(db.DateTime, default=datetime.utcnow)
     
+    # Campos para mamada contínua (não para ao sair do app)
+    inicio_mamada = db.Column(db.DateTime, nullable=True)
+    inicio_mamada_lado = db.Column(db.String(20), nullable=True)
+    
+    # Campo para sono contínuo (não para ao sair do app)
+    inicio_sono = db.Column(db.DateTime, nullable=True)
+    
     registros = db.relationship('Registro', backref='usuario', lazy=True, cascade='all, delete-orphan')
     bichinho = db.relationship('BichinhoVirtual', backref='usuario', lazy=True, uselist=False)
     pesos = db.relationship('PesoRegistro', backref='usuario', lazy=True, cascade='all, delete-orphan')
