@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: mamae-bebe
+    name: mamae-bebe-app
     env: python
     buildCommand: pip install -r requirements.txt
     startCommand: gunicorn app:app
@@ -11,8 +11,11 @@ services:
           property: connectionString
       - key: SECRET_KEY
         generateValue: true
+      - key: PYTHON_VERSION
+        value: 3.11.0
 
 databases:
   - name: mamae-bebe-db
     databaseName: mamae_bebe
     user: mamae_bebe_user
+    plan: free
