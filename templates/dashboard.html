@@ -273,6 +273,56 @@
     </div>
 </div>
 
+<!-- BICHINHO VIRTUAL -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card-leag">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <h5 class="texto-primario">
+                            <i class="bi bi-heart-fill"></i> Bichinho do Bebê
+                        </h5>
+                        <p class="mb-0" style="color: var(--cor-texto) !important;">
+                            {% if bichinho %}
+                                Humor: <strong id="humorDash">{{ bichinho.humor }}</strong>
+                                <span id="emojiDash">
+                                    {% if bichinho.humor == 'feliz' %}😊
+                                    {% elif bichinho.humor == 'brincalhao' %}😄
+                                    {% elif bichinho.humor == 'com_fome' %}😋
+                                    {% elif bichinho.humor == 'com_sono' %}😴
+                                    {% elif bichinho.humor == 'brabo' %}😠
+                                    {% elif bichinho.humor == 'doente' %}😷
+                                    {% elif bichinho.humor == 'maluco' %}🤪
+                                    {% else %}😐{% endif %}
+                                </span>
+                                <br>
+                                <small style="color: var(--cor-texto) !important;">
+                                    Felicidade: {{ bichinho.nivel_felicidade }}% | 
+                                    Fome: {{ bichinho.nivel_fome }}% | 
+                                    Sono: {{ bichinho.nivel_sono }}%
+                                </small>
+                            {% else %}
+                                <span style="color: var(--cor-texto) !important;">
+                                    <i class="bi bi-plus-circle"></i> 
+                                    <a href="{{ url_for('criar_bichinho') }}" class="texto-primario" style="text-decoration: none;">
+                                        Criar Bichinho Virtual
+                                    </a>
+                                </span>
+                            {% endif %}
+                        </p>
+                    </div>
+                    <div class="col-md-4 text-end">
+                        <a href="{{ url_for('bichinho') }}" class="btn btn-primario">
+                            <i class="bi bi-heart-fill"></i> Ver Bichinho
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- MODAL COCÔ -->
 <div class="modal fade" id="modalCoco" tabindex="-1">
     <div class="modal-dialog">
@@ -404,5 +454,39 @@ function pararMamada() {
         }
     });
 }
+
+// Atualizar status do bichinho na dashboard
+function atualizarStatusBichinho() {
+    fetch('/api/humor_bichinho')
+        .then(response => response.json())
+        .then(data => {
+            if (data.humor) {
+                const humorDash = document.getElementById('humorDash');
+                const emojiDash = document.getElementById('emojiDash');
+                
+                if (humorDash) humorDash.textContent = data.humor;
+                if (emojiDash) {
+                    const emojis = {
+                        'feliz': '😊',
+                        'brincalhao': '😄',
+                        'com_fome': '😋',
+                        'com_sono': '😴',
+                        'brabo': '😠',
+                        'doente': '😷',
+                        'maluco': '🤪',
+                        'neutro': '😐'
+                    };
+                    emojiDash.textContent = emojis[data.humor] || '😐';
+                }
+            }
+        })
+        .catch(error => console.error('Erro:', error));
+}
+
+// Atualizar a cada 30 segundos
+setInterval(atualizarStatusBichinho, 30000);
+
+// Atualizar ao carregar
+document.addEventListener('DOMContentLoaded', atualizarStatusBichinho);
 </script>
 {% endblock %}
