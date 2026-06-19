@@ -3,10 +3,9 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime, timedelta
-from models import db, Usuario, Registro, DicaCientifica, PesoRegistro, Vacina, MarcoDesenvolvimento, FotoBebe
+from models import db, Usuario, Registro, DicaCientifica, PesoRegistro, Vacina, MarcoDesenvolvimento
 import os
 from dotenv import load_dotenv
-import json
 from io import BytesIO
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import A4
@@ -14,15 +13,11 @@ from reportlab.lib import colors
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.enums import TA_CENTER, TA_LEFT
-import base64
-from PIL import Image
-import io
 
 load_dotenv()
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'dev-key-12345')
-app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB para fotos
 
 # Configurar banco de dados
 database_url = os.getenv('DATABASE_URL')
@@ -38,53 +33,6 @@ with app.app_context():
     try:
         db.create_all()
         print("✅ Tabelas criadas com sucesso!")
-        
-        # Inserir dicas científicas se não existirem
-        if DicaCientifica.query.count() == 0:
-            dicas = [
-                {
-                    'titulo': 'Amamentação em livre demanda',
-                    'descricao': 'Estudos da OMS mostram que amamentação em livre demanda nos primeiros 6 meses reduz em 40% o risco de infecções respiratórias.',
-                    'categoria': 'amamentacao'
-                },
-                {
-                    'titulo': 'Benefícios do contato pele a pele',
-                    'descricao': 'Pesquisas da UNICEF indicam que o contato pele a pele na primeira hora de vida aumenta em 80% as chances de amamentação exclusiva.',
-                    'categoria': 'contato'
-                },
-                {
-                    'titulo': 'Sono do recém-nascido',
-                    'descricao': 'Estudo da American Academy of Pediatrics mostra que recém-nascidos que dormem no mesmo quarto dos pais têm 50% menos risco de morte súbita.',
-                    'categoria': 'sono'
-                },
-                {
-                    'titulo': 'Cólica do bebê',
-                    'descricao': 'Pesquisa da Universidade de Bristol indica que massagem na barriga reduz em 60% os episódios de cólica em bebês.',
-                    'categoria': 'saude'
-                },
-                {
-                    'titulo': 'Importância do leite materno',
-                    'descricao': 'Estudo do Lancet mostrou que o aleitamento materno exclusivo até 6 meses reduz em 45% o risco de diarreia e infecções.',
-                    'categoria': 'amamentacao'
-                },
-                {
-                    'titulo': 'Desenvolvimento cerebral',
-                    'descricao': 'Pesquisas da Harvard University indicam que o cérebro do bebê dobra de tamanho no primeiro ano, exigindo nutrientes essenciais do leite materno.',
-                    'categoria': 'desenvolvimento'
-                }
-            ]
-            
-            for dica in dicas:
-                nova_dica = DicaCientifica(
-                    titulo=dica['titulo'],
-                    descricao=dica['descricao'],
-                    categoria=dica['categoria']
-                )
-                db.session.add(nova_dica)
-            
-            db.session.commit()
-            print("✅ Dicas científicas inseridas!")
-            
     except Exception as e:
         print(f"❌ Erro ao criar tabelas: {e}")
 
@@ -98,7 +46,7 @@ login_manager.login_message = 'Faça login para acessar esta página.'
 def load_user(user_id):
     return Usuario.query.get(int(user_id))
 
-# ========== ROTAS ==========
+# ========== ROTAS PRINCIPAIS ==========
 
 @app.route('/')
 def index():
@@ -115,23 +63,16 @@ def login():
         try:
             email = request.form.get('email')
             senha = request.form.get('senha')
-            
             usuario = Usuario.query.filter_by(email=email).first()
-            
             if usuario and check_password_hash(usuario.senha, senha):
                 login_user(usuario)
-                
-                # Salvar preferências na sessão
                 session['modo_noturno'] = usuario.modo_noturno
                 session['cor_tema'] = usuario.cor_tema
-                
                 flash('Login realizado com sucesso!', 'success')
                 return redirect(url_for('dashboard'))
-            
             flash('Email ou senha incorretos.', 'danger')
         except Exception as e:
             flash(f'Erro ao fazer login: {str(e)}', 'danger')
-    
     return render_template('login.html')
 
 @app.route('/cadastrar', methods=['GET', 'POST'])
@@ -149,7 +90,6 @@ def cadastrar():
             data_nasc = request.form.get('data_nasc')
             hora_nasc = request.form.get('hora_nasc')
             peso = request.form.get('peso')
-            altura = request.form.get('altura')
             
             if not nome or not email or not senha:
                 flash('Nome, email e senha são obrigatórios.', 'danger')
@@ -168,8 +108,7 @@ def cadastrar():
                 nome_bebe=nome_bebe if nome_bebe else None,
                 sexo_bebe=sexo_bebe,
                 cor_tema=cor_tema,
-                peso_bebe=float(peso) if peso else None,
-                altura_bebe=float(altura) if altura else None
+                peso_bebe=float(peso) if peso else None
             )
             
             if data_nasc:
@@ -186,26 +125,11 @@ def cadastrar():
             
             db.session.add(usuario)
             db.session.commit()
-            
-            # Registrar peso inicial
-            if peso:
-                peso_reg = PesoRegistro(
-                    usuario_id=usuario.id,
-                    peso=float(peso),
-                    altura=float(altura) if altura else None,
-                    data=datetime.now().date()
-                )
-                db.session.add(peso_reg)
-                db.session.commit()
-            
             flash('Cadastro realizado com sucesso! Faça login.', 'success')
             return redirect(url_for('login'))
-            
         except Exception as e:
             db.session.rollback()
             flash(f'Erro ao cadastrar: {str(e)}', 'danger')
-            return redirect(url_for('cadastrar'))
-    
     return render_template('cadastrar.html')
 
 @app.route('/logout')
@@ -238,36 +162,15 @@ def dashboard():
             'coco': sum(1 for r in registros_hoje if r.tipo == 'Coco'),
             'xixi': sum(1 for r in registros_hoje if r.tipo == 'Xixi'),
             'regurgito': sum(1 for r in registros_hoje if r.tipo == 'Regurgito'),
-            'sono': sum(1 for r in registros_hoje if r.tipo == 'Dormiu'),
-            'temperatura': sum(1 for r in registros_hoje if r.tipo == 'Temperatura')
+            'sono': sum(1 for r in registros_hoje if r.tipo == 'Dormiu')
         }
         
         alerta_mamada = verificar_mamadas(stats['mamadas'])
-        
-        # Verificar lembrete de mamada
-        verificar_lembrete_mamada()
         
         ultima_mamada = Registro.query.filter(
             Registro.tipo == 'Mamou',
             Registro.usuario_id == current_user.id
         ).order_by(Registro.data_hora.desc()).first()
-        
-        dica = buscar_dica_cientifica(stats)
-        
-        # Dados para gráficos
-        dados_graficos = obter_dados_graficos(current_user.id)
-        
-        # Vacinas pendentes
-        vacinas_pendentes = Vacina.query.filter(
-            Vacina.usuario_id == current_user.id,
-            Vacina.aplicada == False
-        ).order_by(Vacina.proxima_dose).all()
-        
-        # Próximos marcos
-        proximos_marcos = MarcoDesenvolvimento.query.filter(
-            MarcoDesenvolvimento.usuario_id == current_user.id,
-            MarcoDesenvolvimento.conquistado == False
-        ).order_by(MarcoDesenvolvimento.idade_meses).all()
         
         return render_template('dashboard.html', 
                              registros=registros_hoje[:10],
@@ -275,11 +178,7 @@ def dashboard():
                              ultima_mamada=ultima_mamada,
                              datetime=datetime,
                              idade=idade,
-                             alerta_mamada=alerta_mamada,
-                             dica=dica,
-                             dados_graficos=dados_graficos,
-                             vacinas_pendentes=vacinas_pendentes[:3],
-                             proximos_marcos=proximos_marcos[:3])
+                             alerta_mamada=alerta_mamada)
     except Exception as e:
         flash(f'Erro ao carregar dashboard: {str(e)}', 'danger')
         return render_template('dashboard.html', registros=[], stats={}, ultima_mamada=None, datetime=datetime)
@@ -293,7 +192,6 @@ def registrar():
         duracao = request.form.get('duracao')
         cor_coco = request.form.get('cor_coco')
         consistencia_coco = request.form.get('consistencia_coco')
-        temperatura = request.form.get('temperatura')
         observacao = request.form.get('observacao')
         
         if tipo == 'Dormiu':
@@ -318,101 +216,15 @@ def registrar():
             duracao=duracao if duracao else None,
             cor_coco=cor_coco if cor_coco else None,
             consistencia_coco=consistencia_coco if consistencia_coco else None,
-            temperatura=float(temperatura) if temperatura else None,
             observacao=observacao if observacao else None
         )
         
         db.session.add(registro)
         db.session.commit()
-        
         flash(f'{tipo} registrado com sucesso!', 'success')
     except Exception as e:
         db.session.rollback()
         flash(f'Erro ao registrar: {str(e)}', 'danger')
-    
-    return redirect(url_for('dashboard'))
-
-@app.route('/registrar_peso', methods=['POST'])
-@login_required
-def registrar_peso():
-    try:
-        peso = request.form.get('peso')
-        altura = request.form.get('altura')
-        data = request.form.get('data')
-        
-        if not peso:
-            flash('Peso é obrigatório.', 'danger')
-            return redirect(url_for('dashboard'))
-        
-        peso_reg = PesoRegistro(
-            usuario_id=current_user.id,
-            peso=float(peso),
-            altura=float(altura) if altura else None,
-            data=datetime.strptime(data, '%Y-%m-%d').date() if data else datetime.now().date()
-        )
-        
-        db.session.add(peso_reg)
-        
-        # Atualizar peso atual do bebê
-        current_user.peso_bebe = float(peso)
-        if altura:
-            current_user.altura_bebe = float(altura)
-        
-        db.session.commit()
-        flash('Peso registrado com sucesso!', 'success')
-    except Exception as e:
-        db.session.rollback()
-        flash(f'Erro ao registrar peso: {str(e)}', 'danger')
-    
-    return redirect(url_for('dashboard'))
-
-@app.route('/registrar_vacina', methods=['POST'])
-@login_required
-def registrar_vacina():
-    try:
-        nome = request.form.get('nome')
-        data_aplicacao = request.form.get('data_aplicacao')
-        proxima_dose = request.form.get('proxima_dose')
-        
-        vacina = Vacina(
-            usuario_id=current_user.id,
-            nome=nome,
-            data_aplicacao=datetime.strptime(data_aplicacao, '%Y-%m-%d').date() if data_aplicacao else None,
-            proxima_dose=datetime.strptime(proxima_dose, '%Y-%m-%d').date() if proxima_dose else None,
-            aplicada=True
-        )
-        
-        db.session.add(vacina)
-        db.session.commit()
-        flash('Vacina registrada com sucesso!', 'success')
-    except Exception as e:
-        db.session.rollback()
-        flash(f'Erro ao registrar vacina: {str(e)}', 'danger')
-    
-    return redirect(url_for('dashboard'))
-
-@app.route('/registrar_marco', methods=['POST'])
-@login_required
-def registrar_marco():
-    try:
-        nome = request.form.get('nome')
-        data = request.form.get('data')
-        idade_meses = request.form.get('idade_meses')
-        
-        marco = MarcoDesenvolvimento(
-            usuario_id=current_user.id,
-            nome=nome,
-            data=datetime.strptime(data, '%Y-%m-%d').date() if data else datetime.now().date(),
-            idade_meses=int(idade_meses) if idade_meses else None,
-            conquistado=True
-        )
-        
-        db.session.add(marco)
-        db.session.commit()
-        flash('Marco registrado com sucesso!', 'success')
-    except Exception as e:
-        db.session.rollback()
-        flash(f'Erro ao registrar marco: {str(e)}', 'danger')
     
     return redirect(url_for('dashboard'))
 
@@ -430,7 +242,6 @@ def excluir_registro(registro_id):
     except Exception as e:
         db.session.rollback()
         flash(f'Erro ao excluir: {str(e)}', 'danger')
-    
     return redirect(url_for('dashboard'))
 
 @app.route('/toggle_modo', methods=['POST'])
@@ -443,7 +254,6 @@ def toggle_modo():
         flash('Modo alterado com sucesso!', 'success')
     except Exception as e:
         flash(f'Erro ao alterar modo: {str(e)}', 'danger')
-    
     return redirect(url_for('dashboard'))
 
 @app.route('/relatorio')
@@ -466,8 +276,7 @@ def relatorio():
                 'mamadas': sum(1 for r in registros if r.tipo == 'Mamou'),
                 'coco': sum(1 for r in registros if r.tipo == 'Coco'),
                 'xixi': sum(1 for r in registros if r.tipo == 'Xixi'),
-                'sono': sum(1 for r in registros if r.tipo == 'Dormiu'),
-                'temperatura': sum(1 for r in registros if r.tipo == 'Temperatura')
+                'sono': sum(1 for r in registros if r.tipo == 'Dormiu')
             })
         
         registros_hoje = Registro.query.filter(
@@ -483,181 +292,37 @@ def relatorio():
                 'lado': r.lado if r.lado else '-',
                 'duracao': r.duracao if r.duracao else '-',
                 'cor_coco': r.cor_coco if r.cor_coco else '-',
-                'consistencia_coco': r.consistencia_coco if r.consistencia_coco else '-',
-                'temperatura': r.temperatura if r.temperatura else '-'
+                'consistencia_coco': r.consistencia_coco if r.consistencia_coco else '-'
             })
         
         idade = calcular_idade_exata(current_user)
         avaliacao = gerar_avaliacao(dados_semana, current_user)
-        
-        # Estimativas
-        total_dias = len([d for d in dados_semana if d['mamadas'] > 0 or d['coco'] > 0 or d['xixi'] > 0])
-        if total_dias > 0:
-            total_mamadas = sum(d['mamadas'] for d in dados_semana)
-            total_coco = sum(d['coco'] for d in dados_semana)
-            total_xixi = sum(d['xixi'] for d in dados_semana)
-            total_sono = sum(d['sono'] for d in dados_semana)
-            
-            media_mamadas = round(total_mamadas / total_dias, 1)
-            media_coco = round(total_coco / total_dias, 1)
-            media_xixi = round(total_xixi / total_dias, 1)
-            media_sono = round(total_sono / total_dias, 1)
-            
-            if media_mamadas > 0:
-                intervalo = round(24 / media_mamadas, 1)
-                intervalo_str = f"{intervalo} horas"
-            else:
-                intervalo_str = "Sem dados suficientes"
-        else:
-            media_mamadas = 0
-            media_coco = 0
-            media_xixi = 0
-            media_sono = 0
-            intervalo_str = "Sem dados suficientes"
-        
-        estimativas = {
-            'media_mamadas': media_mamadas,
-            'media_coco': media_coco,
-            'media_xixi': media_xixi,
-            'media_sono': media_sono,
-            'intervalo_mamadas': intervalo_str
-        }
-        
-        # Pesos registrados
-        pesos = PesoRegistro.query.filter_by(usuario_id=current_user.id).order_by(PesoRegistro.data).all()
-        
-        # Vacinas
-        vacinas = Vacina.query.filter_by(usuario_id=current_user.id).order_by(Vacina.data_aplicacao).all()
-        
-        # Marcos
-        marcos = MarcoDesenvolvimento.query.filter_by(usuario_id=current_user.id).order_by(MarcoDesenvolvimento.data).all()
         
         return render_template('relatorio.html', 
                              dados=dados_semana,
                              detalhes=detalhes,
                              idade=idade,
                              avaliacao=avaliacao,
-                             nome_bebe=current_user.nome_bebe or 'Bebê',
-                             estimativas=estimativas,
-                             pesos=pesos,
-                             vacinas=vacinas,
-                             marcos=marcos)
+                             nome_bebe=current_user.nome_bebe or 'Bebê')
     except Exception as e:
         flash(f'Erro ao carregar relatório: {str(e)}', 'danger')
-        return render_template('relatorio.html', dados=[], detalhes=[], estimativas={})
+        return render_template('relatorio.html', dados=[], detalhes=[])
 
 @app.route('/relatorio_pdf')
 @login_required
 def relatorio_pdf():
     try:
         buffer = BytesIO()
-        doc = SimpleDocTemplate(buffer, pagesize=A4, topMargin=40, bottomMargin=40)
-        
+        doc = SimpleDocTemplate(buffer, pagesize=A4)
         styles = getSampleStyleSheet()
-        styles.add(ParagraphStyle(name='CustomTitle', fontSize=24, alignment=TA_CENTER, textColor=colors.HexColor('#d63384')))
-        styles.add(ParagraphStyle(name='CustomHeader', fontSize=16, alignment=TA_LEFT, textColor=colors.HexColor('#d63384')))
-        styles.add(ParagraphStyle(name='CustomBody', fontSize=11, alignment=TA_LEFT, textColor=colors.HexColor('#333333')))
         
         elements = []
-        
-        # Título
-        elements.append(Paragraph("LEAG BABY - RELATÓRIO DO BEBÊ", styles['CustomTitle']))
+        elements.append(Paragraph("RELATÓRIO DO BEBÊ", styles['Title']))
         elements.append(Spacer(1, 20))
-        
-        # Informações do bebê
-        elements.append(Paragraph(f"<b>Nome:</b> {current_user.nome_bebe or 'Bebê'}", styles['CustomBody']))
-        elements.append(Paragraph(f"<b>Idade:</b> {calcular_idade_exata(current_user)}", styles['CustomBody']))
-        if current_user.peso_bebe:
-            elements.append(Paragraph(f"<b>Peso:</b> {current_user.peso_bebe} kg", styles['CustomBody']))
-        if current_user.altura_bebe:
-            elements.append(Paragraph(f"<b>Altura:</b> {current_user.altura_bebe} cm", styles['CustomBody']))
-        elements.append(Paragraph(f"<b>Data:</b> {datetime.now().strftime('%d/%m/%Y %H:%M')}", styles['CustomBody']))
+        elements.append(Paragraph(f"<b>Nome:</b> {current_user.nome_bebe or 'Bebê'}", styles['Normal']))
+        elements.append(Paragraph(f"<b>Idade:</b> {calcular_idade_exata(current_user)}", styles['Normal']))
+        elements.append(Paragraph(f"<b>Data:</b> {datetime.now().strftime('%d/%m/%Y %H:%M')}", styles['Normal']))
         elements.append(Spacer(1, 20))
-        
-        # Últimos 7 dias
-        elements.append(Paragraph("ÚLTIMOS 7 DIAS", styles['CustomHeader']))
-        elements.append(Spacer(1, 10))
-        
-        hoje = datetime.now().date()
-        data_inicio = hoje - timedelta(days=7)
-        
-        dados_tabela = [['Data', 'Mamadas', 'Coco', 'Xixi', 'Sono']]
-        for i in range(7):
-            dia = data_inicio + timedelta(days=i)
-            registros = Registro.query.filter(
-                db.func.date(Registro.data_hora) == dia,
-                Registro.usuario_id == current_user.id
-            ).all()
-            
-            dados_tabela.append([
-                dia.strftime('%d/%m'),
-                str(sum(1 for r in registros if r.tipo == 'Mamou')),
-                str(sum(1 for r in registros if r.tipo == 'Coco')),
-                str(sum(1 for r in registros if r.tipo == 'Xixi')),
-                str(sum(1 for r in registros if r.tipo == 'Dormiu'))
-            ])
-        
-        table = Table(dados_tabela, colWidths=[80, 60, 60, 60, 60])
-        table.setStyle(TableStyle([
-            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#d63384')),
-            ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
-            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-            ('FONTSIZE', (0, 0), (-1, 0), 12),
-            ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
-            ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
-            ('GRID', (0, 0), (-1, -1), 1, colors.black)
-        ]))
-        elements.append(table)
-        elements.append(Spacer(1, 20))
-        
-        # Avaliação
-        elements.append(Paragraph("AVALIAÇÃO GERAL", styles['CustomHeader']))
-        elements.append(Spacer(1, 10))
-        
-        total_mamadas = sum(1 for r in Registro.query.filter(
-            db.func.date(Registro.data_hora) >= data_inicio,
-            Registro.usuario_id == current_user.id,
-            Registro.tipo == 'Mamou'
-        ).all())
-        
-        if total_mamadas / 7 >= 10:
-            avaliacao = "✅ Excelente! O bebê está mamando muito bem."
-        elif total_mamadas / 7 >= 7:
-            avaliacao = "✅ Bom! O bebê está mamando regularmente."
-        else:
-            avaliacao = "⚠️ Atenção! O bebê está mamando pouco. Consulte um pediatra."
-        
-        elements.append(Paragraph(avaliacao, styles['CustomBody']))
-        elements.append(Spacer(1, 20))
-        
-        # Marcos de desenvolvimento
-        marcos = MarcoDesenvolvimento.query.filter_by(usuario_id=current_user.id, conquistado=True).all()
-        if marcos:
-            elements.append(Paragraph("MARCOS DE DESENVOLVIMENTO", styles['CustomHeader']))
-            elements.append(Spacer(1, 10))
-            for m in marcos:
-                elements.append(Paragraph(f"✅ {m.nome} - {m.data.strftime('%d/%m/%Y')}", styles['CustomBody']))
-            elements.append(Spacer(1, 20))
-        
-        # Vacinas
-        vacinas = Vacina.query.filter_by(usuario_id=current_user.id, aplicada=True).all()
-        if vacinas:
-            elements.append(Paragraph("VACINAS APLICADAS", styles['CustomHeader']))
-            elements.append(Spacer(1, 10))
-            for v in vacinas:
-                elementos = f"💉 {v.nome}"
-                if v.data_aplicacao:
-                    elementos += f" - {v.data_aplicacao.strftime('%d/%m/%Y')}"
-                if v.proxima_dose:
-                    elementos += f" (Próxima: {v.proxima_dose.strftime('%d/%m/%Y')})"
-                elements.append(Paragraph(elementos, styles['CustomBody']))
-            elements.append(Spacer(1, 20))
-        
-        # Rodapé
-        elements.append(Paragraph("---", styles['CustomBody']))
-        elements.append(Paragraph("Relatório gerado automaticamente pelo Leag Baby", styles['CustomBody']))
-        elements.append(Paragraph("Desenvolvido por André Carvalho", styles['CustomBody']))
         
         doc.build(elements)
         buffer.seek(0)
@@ -713,15 +378,6 @@ def api_parar_mamada():
         db.session.rollback()
         return jsonify({'success': False, 'error': str(e)}), 500
 
-@app.route('/api/dados_graficos')
-@login_required
-def api_dados_graficos():
-    try:
-        dados = obter_dados_graficos(current_user.id)
-        return jsonify(dados)
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
-
 # ========== FUNÇÕES AUXILIARES ==========
 
 def calcular_idade_exata(usuario):
@@ -755,33 +411,6 @@ def verificar_mamadas(total):
     else:
         return {'status': 'ideal', 'mensagem': '✅ Ótimo! O bebê está mamando na quantidade ideal (8-12 mamadas por dia).'}
 
-def verificar_lembrete_mamada():
-    if current_user.is_authenticated:
-        hoje = datetime.now().date()
-        ultima_mamada = Registro.query.filter(
-            Registro.tipo == 'Mamou',
-            Registro.usuario_id == current_user.id
-        ).order_by(Registro.data_hora.desc()).first()
-        
-        if ultima_mamada:
-            diff = datetime.now() - ultima_mamada.data_hora
-            if diff.total_seconds() > 10800:  # 3 horas
-                flash('⏰ Já faz 3 horas desde a última mamada! Hora de amamentar.', 'warning')
-
-def buscar_dica_cientifica(stats):
-    dicas = DicaCientifica.query.all()
-    if not dicas:
-        return None
-    
-    if stats['mamadas'] < 8:
-        return dicas[0]
-    elif stats['sono'] == 0:
-        return dicas[2]
-    elif stats['coco'] > 3:
-        return dicas[3]
-    else:
-        return dicas[4]
-
 def gerar_avaliacao(dados, usuario):
     total_mamadas = sum(d['mamadas'] for d in dados)
     media_mamadas = total_mamadas / 7 if dados else 0
@@ -792,31 +421,6 @@ def gerar_avaliacao(dados, usuario):
         return "✅ Bom! O bebê está mamando regularmente. Tente aumentar um pouco a frequência."
     else:
         return "⚠️ Atenção! O bebê está mamando pouco. Consulte um pediatra para avaliação."
-
-def obter_dados_graficos(usuario_id):
-    hoje = datetime.now().date()
-    dados = {
-        'labels': [],
-        'mamadas': [],
-        'sono': [],
-        'xixi': []
-    }
-    
-    for i in range(7, 0, -1):
-        dia = hoje - timedelta(days=i)
-        registros = Registro.query.filter(
-            db.func.date(Registro.data_hora) == dia,
-            Registro.usuario_id == usuario_id
-        ).all()
-        
-        dados['labels'].append(dia.strftime('%d/%m'))
-        dados['mamadas'].append(sum(1 for r in registros if r.tipo == 'Mamou'))
-        dados['sono'].append(sum(1 for r in registros if r.tipo == 'Dormiu'))
-        dados['xixi'].append(sum(1 for r in registros if r.tipo == 'Xixi'))
-    
-    return dados
-
-# ========== INICIALIZAR ==========
 
 if __name__ == '__main__':
     app.run(debug=True)
