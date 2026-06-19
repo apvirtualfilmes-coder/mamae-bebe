@@ -1,0 +1,179 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow-lg mb-4">
+            <div class="card-body">
+                <h4 class="text-pink">
+                    <i class="bi bi-person"></i> 
+                    {{ current_user.nome }} 
+                    <small class="text-muted">- {{ current_user.nome_bebe or 'Bebê' }}</small>
+                </h4>
+                <p class="mb-0">
+                    <i class="bi bi-calendar"></i> Registros de hoje - 
+                    {{ datetime.now().strftime('%d/%m/%Y') }}
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6 col-lg-4 mb-3">
+        <div class="card bg-pink-light text-center">
+            <div class="card-body">
+                <h5><i class="bi bi-cup-hot"></i> Mamadas</h5>
+                <h2 class="text-pink">{{ stats.mamadas }}</h2>
+                <small>hoje</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 col-lg-4 mb-3">
+        <div class="card bg-success-light text-center">
+            <div class="card-body">
+                <h5><i class="bi bi-droplet"></i> Xixi</h5>
+                <h2 class="text-success">{{ stats.xixi }}</h2>
+                <small>hoje</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 col-lg-4 mb-3">
+        <div class="card bg-warning-light text-center">
+            <div class="card-body">
+                <h5><i class="bi bi-emoji-smile"></i> Coco</h5>
+                <h2 class="text-warning">{{ stats.coco }}</h2>
+                <small>hoje</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 col-lg-4 mb-3">
+        <div class="card bg-info-light text-center">
+            <div class="card-body">
+                <h5><i class="bi bi-moon"></i> Dormiu</h5>
+                <h2 class="text-info">{{ stats.sono }}</h2>
+                <small>hoje</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 col-lg-4 mb-3">
+        <div class="card bg-danger-light text-center">
+            <div class="card-body">
+                <h5><i class="bi bi-arrow-up"></i> Regurgito</h5>
+                <h2 class="text-danger">{{ stats.regurgito }}</h2>
+                <small>hoje</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 col-lg-4 mb-3">
+        <div class="card bg-primary-light text-center">
+            <div class="card-body">
+                <h5><i class="bi bi-clock"></i> Última Mamada</h5>
+                <h6 class="text-primary">
+                    {% if ultima_mamada %}
+                        {{ ultima_mamada.data_hora.strftime('%H:%M') }}
+                        {% if ultima_mamada.duracao %}
+                            ({{ ultima_mamada.duracao }})
+                        {% endif %}
+                    {% else %}
+                        --
+                    {% endif %}
+                </h6>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card shadow-lg">
+            <div class="card-body">
+                <h5 class="text-pink"><i class="bi bi-clock-history"></i> Últimos Registros</h5>
+                {% if registros %}
+                    <div class="list-group">
+                        {% for r in registros %}
+                            <div class="list-group-item d-flex justify-content-between align-items-center">
+                                <span>
+                                    <i class="bi 
+                                        {% if r.tipo == 'Mamou' %}bi-cup-hot text-pink
+                                        {% elif r.tipo == 'Coco' %}bi-emoji-smile text-warning
+                                        {% elif r.tipo == 'Xixi' %}bi-droplet text-success
+                                        {% elif r.tipo == 'Regurgito' %}bi-arrow-up text-danger
+                                        {% else %}bi-moon text-info{% endif %}">
+                                    </i>
+                                    {{ r.tipo }}
+                                </span>
+                                <span class="text-muted small">
+                                    {{ r.data_hora.strftime('%H:%M') }}
+                                    {% if r.duracao %}
+                                        <span class="badge bg-pink">{{ r.duracao }}</span>
+                                    {% endif %}
+                                </span>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="text-muted">Nenhum registro hoje.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card shadow-lg">
+            <div class="card-body">
+                <h5 class="text-pink"><i class="bi bi-plus-circle"></i> Registrar Atividade</h5>
+                <div class="row g-2">
+                    <div class="col-4 col-md-2">
+                        <form method="POST" action="{{ url_for('registrar') }}">
+                            <input type="hidden" name="tipo" value="Mamou">
+                            <button type="submit" class="btn btn-pink w-100">
+                                <i class="bi bi-cup-hot"></i><br>Mamou
+                            </button>
+                        </form>
+                    </div>
+                    <div class="col-4 col-md-2">
+                        <form method="POST" action="{{ url_for('registrar') }}">
+                            <input type="hidden" name="tipo" value="Coco">
+                            <button type="submit" class="btn btn-warning w-100">
+                                <i class="bi bi-emoji-smile"></i><br>Cocô
+                            </button>
+                        </form>
+                    </div>
+                    <div class="col-4 col-md-2">
+                        <form method="POST" action="{{ url_for('registrar') }}">
+                            <input type="hidden" name="tipo" value="Xixi">
+                            <button type="submit" class="btn btn-success w-100">
+                                <i class="bi bi-droplet"></i><br>Xixi
+                            </button>
+                        </form>
+                    </div>
+                    <div class="col-4 col-md-2">
+                        <form method="POST" action="{{ url_for('registrar') }}">
+                            <input type="hidden" name="tipo" value="Regurgito">
+                            <button type="submit" class="btn btn-danger w-100">
+                                <i class="bi bi-arrow-up"></i><br>Regurgito
+                            </button>
+                        </form>
+                    </div>
+                    <div class="col-4 col-md-2">
+                        <form method="POST" action="{{ url_for('registrar') }}">
+                            <input type="hidden" name="tipo" value="Dormiu">
+                            <button type="submit" class="btn btn-info w-100">
+                                <i class="bi bi-moon"></i><br>Dormiu
+                            </button>
+                        </form>
+                    </div>
+                    <div class="col-4 col-md-2">
+                        <a href="{{ url_for('cronometro') }}" class="btn btn-secondary w-100">
+                            <i class="bi bi-clock"></i><br>Cronômetro
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
