@@ -162,9 +162,18 @@
                 <h5 class="texto-primario"><i class="bi bi-plus-circle"></i> Registrar Atividade</h5>
                 <div class="row g-2">
                     <div class="col-6 col-md-2">
+<<<<<<< HEAD
                         <button type="button" class="btn btn-warning w-100" data-bs-toggle="modal" data-bs-target="#modalCoco">
                             <i class="bi bi-emoji-smile"></i><br>Cocô
                         </button>
+=======
+                        <form method="POST" action="{{ url_for('registrar') }}">
+                            <input type="hidden" name="tipo" value="Coco">
+                            <button type="submit" class="btn btn-warning w-100" data-bs-toggle="modal" data-bs-target="#modalCoco">
+                                <i class="bi bi-emoji-smile"></i><br>Cocô
+                            </button>
+                        </form>
+>>>>>>> 5014e6570a2a085a24368cbedb0320496d845b24
                     </div>
                     <div class="col-6 col-md-2">
                         <form method="POST" action="{{ url_for('registrar') }}">
@@ -249,7 +258,11 @@
     </div>
 </div>
 
+<<<<<<< HEAD
 <!-- MODAL COCÔ -->
+=======
+<!-- Modal para COCÔ -->
+>>>>>>> 5014e6570a2a085a24368cbedb0320496d845b24
 <div class="modal fade" id="modalCoco" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content" style="background: var(--cor-fundo-card); color: var(--cor-texto);">
@@ -300,6 +313,10 @@ function iniciarMamada() {
     
     const lado = document.getElementById('ladoMamada').value;
     
+<<<<<<< HEAD
+=======
+    // Iniciar cronômetro
+>>>>>>> 5014e6570a2a085a24368cbedb0320496d845b24
     estaMamando = true;
     segundos = 0;
     minutos = 0;
@@ -308,6 +325,10 @@ function iniciarMamada() {
     document.getElementById('btnPararMamada').style.display = 'block';
     document.getElementById('statusMamada').style.display = 'inline';
     
+<<<<<<< HEAD
+=======
+    // Informar o backend que começou
+>>>>>>> 5014e6570a2a085a24368cbedb0320496d845b24
     fetch('/api/iniciar_mamada', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
@@ -336,6 +357,10 @@ function pararMamada() {
     document.getElementById('btnIniciarMamada').style.display = 'block';
     document.getElementById('statusMamada').style.display = 'none';
     
+<<<<<<< HEAD
+=======
+    // Registrar no backend
+>>>>>>> 5014e6570a2a085a24368cbedb0320496d845b24
     fetch('/api/parar_mamada', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'}

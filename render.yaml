@@ -1,13 +1,13 @@
 services:
   - type: web
-    name: mamae-bebe-app
+    name: leag-baby
     env: python
     buildCommand: pip install -r requirements.txt
     startCommand: gunicorn app:app
     envVars:
       - key: DATABASE_URL
         fromDatabase:
-          name: mamae-bebe-db
+          name: leag-baby-db
           property: connectionString
       - key: SECRET_KEY
         generateValue: true
@@ -15,7 +15,7 @@ services:
         value: 3.11.0
 
 databases:
-  - name: mamae-bebe-db
-    databaseName: mamae_bebe
-    user: mamae_bebe_user
+  - name: leag-baby-db
+    databaseName: leag_baby
+    user: leag_baby_user
     plan: free

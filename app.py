@@ -6,6 +6,10 @@ from datetime import datetime, timedelta
 from models import db, Usuario, Registro, DicaCientifica
 import os
 from dotenv import load_dotenv
+<<<<<<< HEAD
+=======
+import json
+>>>>>>> 5014e6570a2a085a24368cbedb0320496d845b24
 
 load_dotenv()
 
@@ -16,7 +20,7 @@ app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'dev-key-12345')
 database_url = os.getenv('DATABASE_URL')
 if database_url and database_url.startswith('postgres://'):
     database_url = database_url.replace('postgres://', 'postgresql://', 1)
-app.config['SQLALCHEMY_DATABASE_URI'] = database_url or 'sqlite:///mamae_bebe.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = database_url or 'sqlite:///leag_baby.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db.init_app(app)
@@ -429,11 +433,19 @@ def calcular_idade_exata(usuario):
 
 def verificar_mamadas(total):
     if total >= 12:
+<<<<<<< HEAD
         return {'status': 'excesso', 'mensagem': '⚠️ O bebê está mamando muito! Mais de 12 mamadas em 24h pode indicar que não está mamando o suficiente em cada vez.'}
     elif total < 8:
         return {'status': 'falta', 'mensagem': '⚠️ O bebê está mamando pouco! Menos de 8 mamadas em 24h pode indicar que não está se alimentando o suficiente.'}
     else:
         return {'status': 'ideal', 'mensagem': '✅ Ótimo! O bebê está mamando na quantidade ideal (8-12 mamadas por dia).'}
+=======
+        return {'status': 'excesso', 'mensagem': 'O bebê está mamando muito! Mais de 12 mamadas em 24h pode indicar que não está mamando o suficiente em cada vez.'}
+    elif total < 8:
+        return {'status': 'falta', 'mensagem': 'O bebê está mamando pouco! Menos de 8 mamadas em 24h pode indicar que não está se alimentando o suficiente.'}
+    else:
+        return {'status': 'ideal', 'mensagem': 'Ótimo! O bebê está mamando na quantidade ideal (8-12 mamadas por dia).'}
+>>>>>>> 5014e6570a2a085a24368cbedb0320496d845b24
 
 def buscar_dica_cientifica(stats):
     dicas = DicaCientifica.query.all()
@@ -456,11 +468,19 @@ def gerar_avaliacao(dados, usuario):
     media_mamadas = total_mamadas / 7 if dados else 0
     
     if media_mamadas >= 10:
+<<<<<<< HEAD
         return "✅ Excelente! O bebê está mamando muito bem. Continue assim!"
     elif media_mamadas >= 7:
         return "✅ Bom! O bebê está mamando regularmente. Tente aumentar um pouco a frequência."
     else:
         return "⚠️ Atenção! O bebê está mamando pouco. Consulte um pediatra para avaliação."
+=======
+        return "Excelente! O bebê está mamando muito bem. Continue assim!"
+    elif media_mamadas >= 7:
+        return "Bom! O bebê está mamando regularmente. Tente aumentar um pouco a frequência."
+    else:
+        return "Atenção! O bebê está mamando pouco. Consulte um pediatra para avaliação."
+>>>>>>> 5014e6570a2a085a24368cbedb0320496d845b24
 
 # ========== INICIALIZAR ==========
 
