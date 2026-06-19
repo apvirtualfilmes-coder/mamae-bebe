@@ -3,14 +3,14 @@
 {% block content %}
 <div class="row">
     <div class="col-12">
-        <div class="card-leag mb-4">
+        <div class="card-leag mb-3">
             <div class="card-body">
                 <div class="row align-items-center">
                     <div class="col-md-8">
                         <h4 class="texto-primario">
                             <i class="bi bi-person"></i> 
                             {{ current_user.nome }}
-                            <small class="text-muted">- {{ current_user.nome_bebe or 'Bebê' }}</small>
+                            <small style="color: var(--cor-texto) !important;">- {{ current_user.nome_bebe or 'Bebê' }}</small>
                         </h4>
                         <p class="mb-0" style="color: var(--cor-texto) !important;">
                             <i class="bi bi-calendar"></i> 
@@ -23,10 +23,37 @@
                             <i class="bi bi-clock"></i> Registros de hoje - {{ datetime.now().strftime('%d/%m/%Y') }}
                         </p>
                     </div>
-                    <div class="col-md-4 text-end">
-                        <span class="badge {% if alerta_mamada.status == 'excesso' %}badge-mamada-excesso{% elif alerta_mamada.status == 'falta' %}badge-mamada-falta{% else %}badge-mamada-ideal{% endif %}">
-                            <i class="bi bi-info-circle"></i> {{ alerta_mamada.mensagem }}
-                        </span>
+                </div>
+                
+                <!-- ALERTA DE MAMADAS - CORRIGIDO -->
+                <div class="row mt-2">
+                    <div class="col-12">
+                        <div class="text-center rounded p-2" 
+                             style="background-color: 
+                                {% if alerta_mamada.status == 'excesso' %}#f8d7da
+                                {% elif alerta_mamada.status == 'falta' %}#fff3cd
+                                {% else %}#d4edda{% endif %};
+                                color: 
+                                {% if alerta_mamada.status == 'excesso' %}#721c24
+                                {% elif alerta_mamada.status == 'falta' %}#856404
+                                {% else %}#155724{% endif %};
+                                border-radius: 10px;
+                                font-size: 14px;
+                                padding: 8px 12px;
+                                word-break: break-word;
+                                max-width: 100%;
+                                overflow-wrap: break-word;
+                                border: 1px solid 
+                                {% if alerta_mamada.status == 'excesso' %}#f5c6cb
+                                {% elif alerta_mamada.status == 'falta' %}#ffeeba
+                                {% else %}#c3e6cb{% endif %};">
+                            <i class="bi 
+                                {% if alerta_mamada.status == 'excesso' %}bi-exclamation-triangle
+                                {% elif alerta_mamada.status == 'falta' %}bi-exclamation-circle
+                                {% else %}bi-check-circle{% endif %}">
+                            </i>
+                            <span style="word-break: break-word;">{{ alerta_mamada.mensagem }}</span>
+                        </div>
                     </div>
                 </div>
             </div>
