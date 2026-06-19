@@ -1,0 +1,22 @@
+{
+  "name": "Leag Baby",
+  "short_name": "LeagBaby",
+  "description": "Acompanhe o desenvolvimento do seu bebê com amor e ciência",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#fef3f7",
+  "theme_color": "#d63384",
+  "icons": [
+    {
+      "src": "/static/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/static/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

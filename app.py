@@ -3,7 +3,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime, timedelta
-from models import db, Usuario, Registro, DicaCientifica, BichinhoVirtual
+from models import db, Usuario, Registro, DicaCientifica, BichinhoVirtual, PesoRegistro, Vacina, Banho
 import os
 from dotenv import load_dotenv
 from io import BytesIO
@@ -34,7 +34,6 @@ with app.app_context():
         db.create_all()
         print("✅ Tabelas criadas com sucesso!")
         
-        # Inserir dicas científicas se não existirem
         if DicaCientifica.query.count() == 0:
             dicas = [
                 {
@@ -115,11 +114,8 @@ def login():
             
             if usuario and check_password_hash(usuario.senha, senha):
                 login_user(usuario)
-                
-                # Salvar preferências na sessão
                 session['modo_noturno'] = usuario.modo_noturno
                 session['cor_tema'] = usuario.cor_tema
-                
                 flash('Login realizado com sucesso!', 'success')
                 return redirect(url_for('dashboard'))
             
@@ -145,7 +141,6 @@ def cadastrar():
             hora_nasc = request.form.get('hora_nasc')
             peso = request.form.get('peso')
             
-            # Validar
             if not nome or not email or not senha:
                 flash('Nome, email e senha são obrigatórios.', 'danger')
                 return redirect(url_for('cadastrar'))
@@ -154,7 +149,6 @@ def cadastrar():
                 flash('Este email já está cadastrado.', 'danger')
                 return redirect(url_for('cadastrar'))
             
-            # Determinar cor do tema
             cor_tema = 'azul' if sexo_bebe == 'masculino' else 'rosa'
             
             usuario = Usuario(
@@ -182,8 +176,17 @@ def cadastrar():
             db.session.add(usuario)
             db.session.commit()
             
-            # Criar bichinho virtual automaticamente
             criar_bichinho_inicial(usuario.id)
+            
+            # Registrar peso inicial
+            if peso:
+                peso_reg = PesoRegistro(
+                    usuario_id=usuario.id,
+                    peso=float(peso),
+                    data=datetime.now().date()
+                )
+                db.session.add(peso_reg)
+                db.session.commit()
             
             flash('Cadastro realizado com sucesso! Faça login.', 'success')
             return redirect(url_for('login'))
@@ -207,7 +210,6 @@ def logout():
 @login_required
 def dashboard():
     try:
-        # Atualizar preferências na sessão
         session['modo_noturno'] = current_user.modo_noturno
         session['cor_tema'] = current_user.cor_tema
         
@@ -217,10 +219,8 @@ def dashboard():
             Registro.usuario_id == current_user.id
         ).order_by(Registro.data_hora.desc()).all()
         
-        # Calcular idade exata
         idade = calcular_idade_exata(current_user)
         
-        # Estatísticas
         stats = {
             'mamadas': sum(1 for r in registros_hoje if r.tipo == 'Mamou'),
             'mamadas_direito': sum(1 for r in registros_hoje if r.tipo == 'Mamou' and r.lado == 'direito'),
@@ -228,28 +228,34 @@ def dashboard():
             'coco': sum(1 for r in registros_hoje if r.tipo == 'Coco'),
             'xixi': sum(1 for r in registros_hoje if r.tipo == 'Xixi'),
             'regurgito': sum(1 for r in registros_hoje if r.tipo == 'Regurgito'),
-            'sono': sum(1 for r in registros_hoje if r.tipo == 'Dormiu')
+            'sono': sum(1 for r in registros_hoje if r.tipo == 'Dormiu'),
+            'banhos': sum(1 for r in registros_hoje if r.tipo == 'Banho'),
+            'febre': sum(1 for r in registros_hoje if r.tipo == 'Febre'),
+            'nariz': sum(1 for r in registros_hoje if r.tipo == 'Nariz Entupido')
         }
         
-        # Análise de mamadas
         alerta_mamada = verificar_mamadas(stats['mamadas'])
-        
-        # Verificar lembrete de mamada
         verificar_lembrete_mamada()
         
-        # Última mamada
         ultima_mamada = Registro.query.filter(
             Registro.tipo == 'Mamou',
             Registro.usuario_id == current_user.id
         ).order_by(Registro.data_hora.desc()).first()
         
-        # Buscar dica científica relevante
         dica = buscar_dica_cientifica(stats)
         
-        # Atualizar bichinho virtual
         bichinho = BichinhoVirtual.query.filter_by(usuario_id=current_user.id).first()
         if bichinho:
             atualizar_niveis_bichinho(bichinho)
+        
+        # Lista de pesos para o gráfico
+        pesos = PesoRegistro.query.filter_by(usuario_id=current_user.id).order_by(PesoRegistro.data).all()
+        
+        # Vacinas pendentes
+        vacinas_pendentes = Vacina.query.filter(
+            Vacina.usuario_id == current_user.id,
+            Vacina.aplicada == False
+        ).order_by(Vacina.proxima_dose).all()
         
         return render_template('dashboard.html', 
                              registros=registros_hoje[:10],
@@ -259,7 +265,9 @@ def dashboard():
                              idade=idade,
                              alerta_mamada=alerta_mamada,
                              dica=dica,
-                             bichinho=bichinho)
+                             bichinho=bichinho,
+                             pesos=pesos,
+                             vacinas_pendentes=vacinas_pendentes[:3])
     except Exception as e:
         flash(f'Erro ao carregar dashboard: {str(e)}', 'danger')
         return render_template('dashboard.html', registros=[], stats={}, ultima_mamada=None, datetime=datetime)
@@ -273,23 +281,8 @@ def registrar():
         duracao = request.form.get('duracao')
         cor_coco = request.form.get('cor_coco')
         consistencia_coco = request.form.get('consistencia_coco')
+        temperatura = request.form.get('temperatura')
         observacao = request.form.get('observacao')
-        
-        # Para sono, calcular duração a partir do início e fim
-        if tipo == 'Dormiu':
-            inicio_sono = request.form.get('inicio_sono')
-            fim_sono = request.form.get('fim_sono')
-            if inicio_sono and fim_sono:
-                hoje = datetime.now().date()
-                inicio = datetime.strptime(f"{hoje} {inicio_sono}", '%Y-%m-%d %H:%M')
-                fim = datetime.strptime(f"{hoje} {fim_sono}", '%Y-%m-%d %H:%M')
-                if fim < inicio:
-                    fim = fim + timedelta(days=1)
-                diff = fim - inicio
-                horas = int(diff.total_seconds() // 3600)
-                minutos = int((diff.total_seconds() % 3600) // 60)
-                duracao = f"{horas:02d}:{minutos:02d}"
-                observacao = f"Dormiu das {inicio_sono} às {fim_sono} (Duração: {duracao})"
         
         registro = Registro(
             usuario_id=current_user.id,
@@ -298,18 +291,158 @@ def registrar():
             duracao=duracao if duracao else None,
             cor_coco=cor_coco if cor_coco else None,
             consistencia_coco=consistencia_coco if consistencia_coco else None,
+            temperatura=float(temperatura) if temperatura else None,
             observacao=observacao if observacao else None
         )
         
         db.session.add(registro)
         db.session.commit()
         
-        # Atualizar bichinho virtual
+        # Atualizar bichinho
         bichinho = BichinhoVirtual.query.filter_by(usuario_id=current_user.id).first()
         if bichinho:
             atualizar_niveis_bichinho(bichinho)
         
         flash(f'{tipo} registrado com sucesso!', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Erro ao registrar: {str(e)}', 'danger')
+    
+    return redirect(url_for('dashboard'))
+
+@app.route('/registrar_peso', methods=['POST'])
+@login_required
+def registrar_peso():
+    try:
+        peso = request.form.get('peso')
+        altura = request.form.get('altura')
+        data = request.form.get('data')
+        
+        if not peso:
+            flash('Peso é obrigatório.', 'danger')
+            return redirect(url_for('dashboard'))
+        
+        peso_reg = PesoRegistro(
+            usuario_id=current_user.id,
+            peso=float(peso),
+            altura=float(altura) if altura else None,
+            data=datetime.strptime(data, '%Y-%m-%d').date() if data else datetime.now().date()
+        )
+        
+        db.session.add(peso_reg)
+        current_user.peso_bebe = float(peso)
+        if altura:
+            current_user.altura_bebe = float(altura)
+        
+        db.session.commit()
+        flash('✅ Peso registrado com sucesso!', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Erro ao registrar peso: {str(e)}', 'danger')
+    
+    return redirect(url_for('dashboard'))
+
+@app.route('/registrar_vacina', methods=['POST'])
+@login_required
+def registrar_vacina():
+    try:
+        nome = request.form.get('nome')
+        data_aplicacao = request.form.get('data_aplicacao')
+        proxima_dose = request.form.get('proxima_dose')
+        aplicada = request.form.get('aplicada') == 'on'
+        
+        vacina = Vacina(
+            usuario_id=current_user.id,
+            nome=nome,
+            data_aplicacao=datetime.strptime(data_aplicacao, '%Y-%m-%d').date() if data_aplicacao else None,
+            proxima_dose=datetime.strptime(proxima_dose, '%Y-%m-%d').date() if proxima_dose else None,
+            aplicada=aplicada
+        )
+        
+        db.session.add(vacina)
+        db.session.commit()
+        flash('💉 Vacina registrada com sucesso!', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Erro ao registrar vacina: {str(e)}', 'danger')
+    
+    return redirect(url_for('dashboard'))
+
+@app.route('/registrar_banho', methods=['POST'])
+@login_required
+def registrar_banho():
+    try:
+        data_hora = request.form.get('data_hora')
+        duracao = request.form.get('duracao')
+        observacao = request.form.get('observacao')
+        
+        banho = Banho(
+            usuario_id=current_user.id,
+            data_hora=datetime.strptime(data_hora, '%Y-%m-%dT%H:%M') if data_hora else datetime.now(),
+            duracao=duracao,
+            observacao=observacao
+        )
+        
+        db.session.add(banho)
+        
+        # Registrar também como evento
+        registro = Registro(
+            usuario_id=current_user.id,
+            tipo='Banho',
+            observacao=observacao
+        )
+        db.session.add(registro)
+        
+        db.session.commit()
+        flash('🛁 Banho registrado com sucesso!', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Erro ao registrar banho: {str(e)}', 'danger')
+    
+    return redirect(url_for('dashboard'))
+
+@app.route('/registrar_febre', methods=['POST'])
+@login_required
+def registrar_febre():
+    try:
+        temperatura = request.form.get('temperatura')
+        observacao = request.form.get('observacao')
+        
+        registro = Registro(
+            usuario_id=current_user.id,
+            tipo='Febre',
+            temperatura=float(temperatura) if temperatura else None,
+            observacao=observacao
+        )
+        
+        db.session.add(registro)
+        db.session.commit()
+        
+        if temperatura and float(temperatura) >= 38.5:
+            flash('⚠️ ATENÇÃO: Febre alta! Consulte o pediatra.', 'danger')
+        else:
+            flash('🌡️ Febre registrada.', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Erro ao registrar febre: {str(e)}', 'danger')
+    
+    return redirect(url_for('dashboard'))
+
+@app.route('/registrar_nariz', methods=['POST'])
+@login_required
+def registrar_nariz():
+    try:
+        observacao = request.form.get('observacao')
+        
+        registro = Registro(
+            usuario_id=current_user.id,
+            tipo='Nariz Entupido',
+            observacao=observacao
+        )
+        
+        db.session.add(registro)
+        db.session.commit()
+        flash('👃 Nariz entupido registrado.', 'success')
     except Exception as e:
         db.session.rollback()
         flash(f'Erro ao registrar: {str(e)}', 'danger')
@@ -325,7 +458,6 @@ def excluir_registro(registro_id):
             db.session.delete(registro)
             db.session.commit()
             
-            # Atualizar bichinho virtual
             bichinho = BichinhoVirtual.query.filter_by(usuario_id=current_user.id).first()
             if bichinho:
                 atualizar_niveis_bichinho(bichinho)
@@ -356,7 +488,6 @@ def toggle_modo():
 @login_required
 def relatorio():
     try:
-        # Últimos 7 dias
         hoje = datetime.now().date()
         semana = [hoje - timedelta(days=i) for i in range(7)]
         semana.reverse()
@@ -376,7 +507,6 @@ def relatorio():
                 'sono': sum(1 for r in registros if r.tipo == 'Dormiu')
             })
         
-        # Dados detalhados do dia
         registros_hoje = Registro.query.filter(
             db.func.date(Registro.data_hora) == hoje,
             Registro.usuario_id == current_user.id
@@ -390,46 +520,15 @@ def relatorio():
                 'lado': r.lado if r.lado else '-',
                 'duracao': r.duracao if r.duracao else '-',
                 'cor_coco': r.cor_coco if r.cor_coco else '-',
-                'consistencia_coco': r.consistencia_coco if r.consistencia_coco else '-'
+                'consistencia_coco': r.consistencia_coco if r.consistencia_coco else '-',
+                'temperatura': r.temperatura if r.temperatura else '-'
             })
         
-        # Avaliação geral
         idade = calcular_idade_exata(current_user)
         avaliacao = gerar_avaliacao(dados_semana, current_user)
         
-        # ===== ESTIMATIVAS =====
-        total_dias = len([d for d in dados_semana if d['mamadas'] > 0 or d['coco'] > 0 or d['xixi'] > 0])
-        if total_dias > 0:
-            total_mamadas = sum(d['mamadas'] for d in dados_semana)
-            total_coco = sum(d['coco'] for d in dados_semana)
-            total_xixi = sum(d['xixi'] for d in dados_semana)
-            total_sono = sum(d['sono'] for d in dados_semana)
-            
-            media_mamadas = round(total_mamadas / total_dias, 1)
-            media_coco = round(total_coco / total_dias, 1)
-            media_xixi = round(total_xixi / total_dias, 1)
-            media_sono = round(total_sono / total_dias, 1)
-            
-            # Calcular intervalo entre mamadas (em horas)
-            if media_mamadas > 0:
-                intervalo = round(24 / media_mamadas, 1)
-                intervalo_str = f"{intervalo} horas"
-            else:
-                intervalo_str = "Sem dados suficientes"
-        else:
-            media_mamadas = 0
-            media_coco = 0
-            media_xixi = 0
-            media_sono = 0
-            intervalo_str = "Sem dados suficientes"
-        
-        estimativas = {
-            'media_mamadas': media_mamadas,
-            'media_coco': media_coco,
-            'media_xixi': media_xixi,
-            'media_sono': media_sono,
-            'intervalo_mamadas': intervalo_str
-        }
+        pesos = PesoRegistro.query.filter_by(usuario_id=current_user.id).order_by(PesoRegistro.data).all()
+        vacinas = Vacina.query.filter_by(usuario_id=current_user.id).order_by(Vacina.data_aplicacao).all()
         
         return render_template('relatorio.html', 
                              dados=dados_semana,
@@ -437,10 +536,11 @@ def relatorio():
                              idade=idade,
                              avaliacao=avaliacao,
                              nome_bebe=current_user.nome_bebe or 'Bebê',
-                             estimativas=estimativas)
+                             pesos=pesos,
+                             vacinas=vacinas)
     except Exception as e:
         flash(f'Erro ao carregar relatório: {str(e)}', 'danger')
-        return render_template('relatorio.html', dados=[], detalhes=[], estimativas={})
+        return render_template('relatorio.html', dados=[], detalhes=[])
 
 @app.route('/bichinho')
 @login_required
@@ -463,25 +563,13 @@ def api_humor_bichinho():
         
         atualizar_niveis_bichinho(bichinho)
         
-        # Mapeamento de humores para emojis
-        emojis = {
-            'feliz': '😊',
-            'brincalhao': '😄',
-            'com_fome': '😋',
-            'com_sono': '😴',
-            'brabo': '😠',
-            'doente': '😷',
-            'maluco': '🤪',
-            'neutro': '😐'
-        }
-        
         return jsonify({
             'humor': bichinho.humor,
             'felicidade': bichinho.nivel_felicidade,
             'fome': bichinho.nivel_fome,
             'sono': bichinho.nivel_sono,
             'energia': bichinho.nivel_energia,
-            'emoji': emojis.get(bichinho.humor, '😐')
+            'saude': bichinho.nivel_saude
         })
     except Exception as e:
         return jsonify({'error': str(e)}), 500
@@ -496,22 +584,17 @@ def api_interagir_bichinho():
         if not bichinho:
             return jsonify({'error': 'Bichinho não encontrado'}), 404
         
-        # Interações
         if acao == 'carinho':
             bichinho.nivel_felicidade = min(100, bichinho.nivel_felicidade + 10)
-            flash('🥰 Você fez carinho no bichinho!', 'success')
         elif acao == 'alimentar':
             bichinho.nivel_fome = max(0, bichinho.nivel_fome - 20)
             bichinho.nivel_felicidade = min(100, bichinho.nivel_felicidade + 5)
-            flash('🍼 Você alimentou o bichinho!', 'success')
         elif acao == 'dormir':
             bichinho.nivel_sono = max(0, bichinho.nivel_sono - 20)
             bichinho.nivel_energia = min(100, bichinho.nivel_energia + 10)
-            flash('😴 Você colocou o bichinho para dormir!', 'success')
         elif acao == 'brincar':
             bichinho.nivel_felicidade = min(100, bichinho.nivel_felicidade + 15)
             bichinho.nivel_energia = max(0, bichinho.nivel_energia - 10)
-            flash('🎉 Você brincou com o bichinho!', 'success')
         
         db.session.commit()
         atualizar_niveis_bichinho(bichinho)
@@ -520,107 +603,6 @@ def api_interagir_bichinho():
     except Exception as e:
         db.session.rollback()
         return jsonify({'error': str(e)}), 500
-
-@app.route('/relatorio_pdf')
-@login_required
-def relatorio_pdf():
-    try:
-        buffer = BytesIO()
-        doc = SimpleDocTemplate(buffer, pagesize=A4, topMargin=40, bottomMargin=40)
-        
-        styles = getSampleStyleSheet()
-        styles.add(ParagraphStyle(name='CustomTitle', fontSize=24, alignment=TA_CENTER, textColor=colors.HexColor('#d63384')))
-        styles.add(ParagraphStyle(name='CustomHeader', fontSize=16, alignment=TA_LEFT, textColor=colors.HexColor('#d63384')))
-        styles.add(ParagraphStyle(name='CustomBody', fontSize=11, alignment=TA_LEFT, textColor=colors.HexColor('#333333')))
-        
-        elements = []
-        
-        # Título
-        elements.append(Paragraph("LEAG BABY - RELATÓRIO DO BEBÊ", styles['CustomTitle']))
-        elements.append(Spacer(1, 20))
-        
-        # Informações do bebê
-        elements.append(Paragraph(f"<b>Nome:</b> {current_user.nome_bebe or 'Bebê'}", styles['CustomBody']))
-        elements.append(Paragraph(f"<b>Idade:</b> {calcular_idade_exata(current_user)}", styles['CustomBody']))
-        if current_user.peso_bebe:
-            elements.append(Paragraph(f"<b>Peso:</b> {current_user.peso_bebe} kg", styles['CustomBody']))
-        elements.append(Paragraph(f"<b>Data:</b> {datetime.now().strftime('%d/%m/%Y %H:%M')}", styles['CustomBody']))
-        elements.append(Spacer(1, 20))
-        
-        # Últimos 7 dias
-        elements.append(Paragraph("ÚLTIMOS 7 DIAS", styles['CustomHeader']))
-        elements.append(Spacer(1, 10))
-        
-        hoje = datetime.now().date()
-        data_inicio = hoje - timedelta(days=7)
-        
-        dados_tabela = [['Data', 'Mamadas', 'Coco', 'Xixi', 'Sono']]
-        for i in range(7):
-            dia = data_inicio + timedelta(days=i)
-            registros = Registro.query.filter(
-                db.func.date(Registro.data_hora) == dia,
-                Registro.usuario_id == current_user.id
-            ).all()
-            
-            dados_tabela.append([
-                dia.strftime('%d/%m'),
-                str(sum(1 for r in registros if r.tipo == 'Mamou')),
-                str(sum(1 for r in registros if r.tipo == 'Coco')),
-                str(sum(1 for r in registros if r.tipo == 'Xixi')),
-                str(sum(1 for r in registros if r.tipo == 'Dormiu'))
-            ])
-        
-        table = Table(dados_tabela, colWidths=[80, 60, 60, 60, 60])
-        table.setStyle(TableStyle([
-            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#d63384')),
-            ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
-            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-            ('FONTSIZE', (0, 0), (-1, 0), 12),
-            ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
-            ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
-            ('GRID', (0, 0), (-1, -1), 1, colors.black)
-        ]))
-        elements.append(table)
-        elements.append(Spacer(1, 20))
-        
-        # Avaliação
-        elements.append(Paragraph("AVALIAÇÃO GERAL", styles['CustomHeader']))
-        elements.append(Spacer(1, 10))
-        
-        total_mamadas = sum(1 for r in Registro.query.filter(
-            db.func.date(Registro.data_hora) >= data_inicio,
-            Registro.usuario_id == current_user.id,
-            Registro.tipo == 'Mamou'
-        ).all())
-        
-        if total_mamadas / 7 >= 10:
-            avaliacao = "✅ Excelente! O bebê está mamando muito bem."
-        elif total_mamadas / 7 >= 7:
-            avaliacao = "✅ Bom! O bebê está mamando regularmente."
-        else:
-            avaliacao = "⚠️ Atenção! O bebê está mamando pouco. Consulte um pediatra."
-        
-        elements.append(Paragraph(avaliacao, styles['CustomBody']))
-        elements.append(Spacer(1, 20))
-        
-        # Rodapé
-        elements.append(Paragraph("---", styles['CustomBody']))
-        elements.append(Paragraph("Relatório gerado automaticamente pelo Leag Baby", styles['CustomBody']))
-        elements.append(Paragraph("Desenvolvido por André Carvalho", styles['CustomBody']))
-        
-        doc.build(elements)
-        buffer.seek(0)
-        
-        return send_file(
-            buffer,
-            as_attachment=True,
-            download_name=f"relatorio_{current_user.nome_bebe or 'bebe'}_{datetime.now().strftime('%Y%m%d')}.pdf",
-            mimetype='application/pdf'
-        )
-    except Exception as e:
-        flash(f'Erro ao gerar PDF: {str(e)}', 'danger')
-        return redirect(url_for('relatorio'))
 
 @app.route('/api/iniciar_mamada', methods=['POST'])
 @login_required
@@ -655,13 +637,71 @@ def api_parar_mamada():
         db.session.add(registro)
         db.session.commit()
         
-        # Atualizar bichinho virtual
         bichinho = BichinhoVirtual.query.filter_by(usuario_id=current_user.id).first()
         if bichinho:
             atualizar_niveis_bichinho(bichinho)
         
         session.pop('mamada_inicio', None)
         session.pop('mamada_lado', None)
+        
+        return jsonify({'success': True, 'duracao': tempo_str})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/status_mamada')
+@login_required
+def api_status_mamada():
+    try:
+        if 'mamada_inicio' in session:
+            inicio = datetime.fromisoformat(session['mamada_inicio'])
+            diff = datetime.now() - inicio
+            minutos = int(diff.total_seconds() // 60)
+            segundos = int(diff.total_seconds() % 60)
+            return jsonify({
+                'ativa': True,
+                'tempo': f'{minutos:02d}:{segundos:02d}',
+                'lado': session.get('mamada_lado')
+            })
+        return jsonify({'ativa': False})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/iniciar_sono', methods=['POST'])
+@login_required
+def api_iniciar_sono():
+    try:
+        session['sono_inicio'] = datetime.now().isoformat()
+        return jsonify({'success': True})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/parar_sono', methods=['POST'])
+@login_required
+def api_parar_sono():
+    try:
+        inicio = datetime.fromisoformat(session.get('sono_inicio'))
+        fim = datetime.now()
+        duracao = fim - inicio
+        horas = int(duracao.total_seconds() // 3600)
+        minutos = int((duracao.total_seconds() % 3600) // 60)
+        tempo_str = f"{horas:02d}:{minutos:02d}"
+        
+        registro = Registro(
+            usuario_id=current_user.id,
+            tipo='Dormiu',
+            duracao=tempo_str,
+            observacao=f"Dormiu das {inicio.strftime('%H:%M')} às {fim.strftime('%H:%M')}"
+        )
+        
+        db.session.add(registro)
+        db.session.commit()
+        
+        bichinho = BichinhoVirtual.query.filter_by(usuario_id=current_user.id).first()
+        if bichinho:
+            atualizar_niveis_bichinho(bichinho)
+        
+        session.pop('sono_inicio', None)
         
         return jsonify({'success': True, 'duracao': tempo_str})
     except Exception as e:
@@ -678,18 +718,18 @@ def criar_bichinho_inicial(usuario_id):
             nivel_felicidade=50,
             nivel_fome=50,
             nivel_sono=50,
-            nivel_energia=50
+            nivel_energia=50,
+            nivel_saude=50
         )
         db.session.add(bichinho)
         db.session.commit()
-        print(f"✅ Bichinho virtual criado para usuário {usuario_id}")
+        print(f"✅ Bebêzinho criado para usuário {usuario_id}")
     except Exception as e:
-        print(f"❌ Erro ao criar bichinho: {e}")
+        print(f"❌ Erro ao criar bebêzinho: {e}")
 
 def atualizar_niveis_bichinho(bichinho):
     hoje = datetime.now().date()
     
-    # Buscar registros de hoje
     registros_hoje = Registro.query.filter(
         db.func.date(Registro.data_hora) == hoje,
         Registro.usuario_id == bichinho.usuario_id
@@ -700,17 +740,20 @@ def atualizar_niveis_bichinho(bichinho):
     coco = sum(1 for r in registros_hoje if r.tipo == 'Coco')
     xixi = sum(1 for r in registros_hoje if r.tipo == 'Xixi')
     regurgito = sum(1 for r in registros_hoje if r.tipo == 'Regurgito')
+    febre = sum(1 for r in registros_hoje if r.tipo == 'Febre')
+    nariz = sum(1 for r in registros_hoje if r.tipo == 'Nariz Entupido')
     
-    # Calcular níveis
-    # Fome: quanto mais mamadas, menos fome
+    # FOME
     if mamadas >= 8:
         bichinho.nivel_fome = max(0, bichinho.nivel_fome - 10)
     elif mamadas >= 5:
-        bichinho.nivel_fome = max(0, bichinho.nivel_fome - 5)
+        bichinho.nivel_fome = max(0, bichinho.nivel_fome - 3)
+    elif mamadas >= 2:
+        bichinho.nivel_fome = min(100, bichinho.nivel_fome + 5)
     else:
-        bichinho.nivel_fome = min(100, bichinho.nivel_fome + 10)
+        bichinho.nivel_fome = min(100, bichinho.nivel_fome + 15)
     
-    # Sono: quanto mais dormiu, mais energia
+    # SONO
     if sono >= 3:
         bichinho.nivel_sono = max(0, bichinho.nivel_sono - 10)
         bichinho.nivel_energia = min(100, bichinho.nivel_energia + 10)
@@ -721,31 +764,60 @@ def atualizar_niveis_bichinho(bichinho):
         bichinho.nivel_sono = min(100, bichinho.nivel_sono + 10)
         bichinho.nivel_energia = max(0, bichinho.nivel_energia - 10)
     
-    # Felicidade: influenciada por tudo
-    if mamadas >= 8 and sono >= 3 and coco >= 1:
-        bichinho.nivel_felicidade = min(100, bichinho.nivel_felicidade + 10)
-    elif mamadas < 5 or sono < 1:
-        bichinho.nivel_felicidade = max(0, bichinho.nivel_felicidade - 10)
-    else:
-        bichinho.nivel_felicidade = min(100, max(0, bichinho.nivel_felicidade + 2))
+    # SAÚDE
+    saude = 100
+    if febre > 0:
+        saude -= 20 * febre
+    if nariz > 0:
+        saude -= 10 * nariz
+    if regurgito >= 3:
+        saude -= 10
+    bichinho.nivel_saude = max(0, min(100, saude))
     
-    # Determinar humor
-    if bichinho.nivel_felicidade >= 80:
-        if bichinho.nivel_energia >= 70:
-            bichinho.humor = 'brincalhao'
-        else:
-            bichinho.humor = 'feliz'
-    elif bichinho.nivel_fome >= 70:
+    # FELICIDADE
+    felicidade = 50
+    if mamadas >= 8:
+        felicidade += 20
+    elif mamadas >= 5:
+        felicidade += 10
+    else:
+        felicidade -= 15
+    
+    if sono >= 3:
+        felicidade += 15
+    elif sono == 0:
+        felicidade -= 15
+    
+    if xixi >= 6:
+        felicidade += 10
+    else:
+        felicidade -= 10
+    
+    if coco >= 1:
+        felicidade += 5
+    
+    if bichinho.nivel_saude < 50:
+        felicidade -= 20
+    
+    bichinho.nivel_felicidade = max(0, min(100, felicidade))
+    
+    # DETERMINAR HUMOR
+    if bichinho.nivel_saude <= 30:
+        bichinho.humor = 'doente'
+    elif bichinho.nivel_fome >= 80:
         bichinho.humor = 'com_fome'
-    elif bichinho.nivel_sono >= 70:
+    elif bichinho.nivel_sono >= 80:
         bichinho.humor = 'com_sono'
-    elif bichinho.nivel_felicidade <= 20:
-        if regurgito >= 2 or bichinho.nivel_fome >= 80:
-            bichinho.humor = 'doente'
-        else:
-            bichinho.humor = 'brabo'
-    elif bichinho.nivel_felicidade >= 60 and bichinho.nivel_energia >= 60:
-        bichinho.humor = 'maluco'
+    elif bichinho.nivel_saude <= 50:
+        bichinho.humor = 'cansado'
+    elif bichinho.nivel_felicidade >= 80 and bichinho.nivel_energia >= 70:
+        bichinho.humor = 'brincalhao'
+    elif bichinho.nivel_felicidade >= 65:
+        bichinho.humor = 'feliz'
+    elif bichinho.nivel_felicidade <= 30:
+        bichinho.humor = 'brabo'
+    elif bichinho.nivel_felicidade >= 50 and bichinho.nivel_energia >= 50:
+        bichinho.humor = 'tranquilo'
     else:
         bichinho.humor = 'neutro'
     
@@ -785,7 +857,6 @@ def verificar_mamadas(total):
 
 def verificar_lembrete_mamada():
     if current_user.is_authenticated:
-        hoje = datetime.now().date()
         ultima_mamada = Registro.query.filter(
             Registro.tipo == 'Mamou',
             Registro.usuario_id == current_user.id
@@ -793,24 +864,22 @@ def verificar_lembrete_mamada():
         
         if ultima_mamada:
             diff = datetime.now() - ultima_mamada.data_hora
-            if diff.total_seconds() > 10800:  # 3 horas
+            if diff.total_seconds() > 10800:
                 flash('⏰ Já faz 3 horas desde a última mamada! Hora de amamentar.', 'warning')
 
 def buscar_dica_cientifica(stats):
     dicas = DicaCientifica.query.all()
-    
     if not dicas:
         return None
     
-    # Escolher dica baseada nas estatísticas
     if stats['mamadas'] < 8:
-        return dicas[0]  # Dica sobre amamentação
+        return dicas[0]
     elif stats['sono'] == 0:
-        return dicas[2]  # Dica sobre sono
+        return dicas[2]
     elif stats['coco'] > 3:
-        return dicas[3]  # Dica sobre cólica
+        return dicas[3]
     else:
-        return dicas[4]  # Dica sobre desenvolvimento
+        return dicas[4]
 
 def gerar_avaliacao(dados, usuario):
     total_mamadas = sum(d['mamadas'] for d in dados)
@@ -822,8 +891,6 @@ def gerar_avaliacao(dados, usuario):
         return "✅ Bom! O bebê está mamando regularmente. Tente aumentar um pouco a frequência."
     else:
         return "⚠️ Atenção! O bebê está mamando pouco. Consulte um pediatra para avaliação."
-
-# ========== INICIALIZAR ==========
 
 if __name__ == '__main__':
     app.run(debug=True)

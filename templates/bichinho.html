@@ -6,15 +6,15 @@
         <div class="card-leag text-center">
             <div class="card-body">
                 <h4 class="texto-primario">
-                    <i class="bi bi-heart-fill"></i> Bichinho do Bebê
+                    <i class="bi bi-heart-fill"></i> Como está o Bebê?
                 </h4>
                 
                 <p class="text-muted">
                     <i class="bi bi-info-circle"></i> 
-                    O humor do bichinho reflete como o bebê está se sentindo
+                    O humor reflete como o bebê está se sentindo com base nos registros
                 </p>
                 
-                <!-- Emoji do Bichinho -->
+                <!-- Emoji do Bebê -->
                 <div class="my-4">
                     <div id="emojiBichinho" style="font-size: 150px; line-height: 1.2;">
                         😐
@@ -60,11 +60,11 @@
                     
                     <div class="mb-3">
                         <div class="d-flex justify-content-between">
-                            <span><i class="bi bi-lightning-fill text-success"></i> Energia</span>
-                            <span id="energiaTexto">50%</span>
+                            <span><i class="bi bi-heart-pulse text-success"></i> Saúde</span>
+                            <span id="saudeTexto">50%</span>
                         </div>
                         <div class="progress">
-                            <div id="energiaBarra" class="progress-bar bg-success" role="progressbar" style="width: 50%;"></div>
+                            <div id="saudeBarra" class="progress-bar bg-success" role="progressbar" style="width: 50%;"></div>
                         </div>
                     </div>
                 </div>
@@ -108,7 +108,6 @@
 </div>
 
 <script>
-// Mapeamento de humores para EMOJIS DE CARINHA
 const emojis = {
     'feliz': '😊',
     'brincalhao': '😄',
@@ -116,7 +115,8 @@ const emojis = {
     'com_sono': '😴',
     'brabo': '😠',
     'doente': '😷',
-    'maluco': '🤪',
+    'cansado': '😫',
+    'tranquilo': '😌',
     'neutro': '😐'
 };
 
@@ -127,7 +127,8 @@ const nomesHumores = {
     'com_sono': 'Com Sono 😴',
     'brabo': 'Brabo 😠',
     'doente': 'Doente 😷',
-    'maluco': 'Maluco 🤪',
+    'cansado': 'Cansado 😫',
+    'tranquilo': 'Tranquilo 😌',
     'neutro': 'Neutro 😐'
 };
 
@@ -146,8 +147,8 @@ function atualizarBichinho() {
                 document.getElementById('fomeBarra').style.width = data.fome + '%';
                 document.getElementById('sonoTexto').textContent = data.sono + '%';
                 document.getElementById('sonoBarra').style.width = data.sono + '%';
-                document.getElementById('energiaTexto').textContent = data.energia + '%';
-                document.getElementById('energiaBarra').style.width = data.energia + '%';
+                document.getElementById('saudeTexto').textContent = data.saude + '%';
+                document.getElementById('saudeBarra').style.width = data.saude + '%';
             }
         })
         .catch(error => console.error('Erro:', error));

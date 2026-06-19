@@ -102,6 +102,9 @@
                                         {% if d.consistencia_coco != '-' %}
                                             Consistência: {{ d.consistencia_coco }}
                                         {% endif %}
+                                        {% if d.temperatura != '-' %}
+                                            Temperatura: {{ d.temperatura }}°C
+                                        {% endif %}
                                     </td>
                                 </tr>
                                 {% endfor %}
@@ -116,47 +119,79 @@
     </div>
 </div>
 
-<!-- ESTIMATIVAS -->
+<!-- HISTÓRICO DE PESO -->
+{% if pesos %}
 <div class="row mt-4">
     <div class="col-12">
-        <div class="card-leag" style="border: 2px solid var(--cor-primaria);">
+        <div class="card-leag">
             <div class="card-body">
-                <h5 class="texto-primario"><i class="bi bi-clock-history"></i> Estimativas Baseadas nos Últimos 7 Dias</h5>
-                <div class="row">
-                    <div class="col-md-6">
-                        <p style="color: var(--cor-texto) !important;">
-                            <strong style="color: var(--cor-texto) !important;">🍼 Média de Mamadas:</strong> 
-                            <span style="color: var(--cor-texto) !important;">{{ estimativas.media_mamadas }}x por dia</span>
-                        </p>
-                        <p style="color: var(--cor-texto) !important;">
-                            <strong style="color: var(--cor-texto) !important;">⏰ Intervalo entre mamadas:</strong> 
-                            <span style="color: var(--cor-texto) !important;">{{ estimativas.intervalo_mamadas }}</span>
-                        </p>
-                    </div>
-                    <div class="col-md-6">
-                        <p style="color: var(--cor-texto) !important;">
-                            <strong style="color: var(--cor-texto) !important;">💩 Média de Cocô:</strong> 
-                            <span style="color: var(--cor-texto) !important;">{{ estimativas.media_coco }}x por dia</span>
-                        </p>
-                        <p style="color: var(--cor-texto) !important;">
-                            <strong style="color: var(--cor-texto) !important;">💦 Média de Xixi:</strong> 
-                            <span style="color: var(--cor-texto) !important;">{{ estimativas.media_xixi }}x por dia</span>
-                        </p>
-                        <p style="color: var(--cor-texto) !important;">
-                            <strong style="color: var(--cor-texto) !important;">😴 Média de Sono:</strong> 
-                            <span style="color: var(--cor-texto) !important;">{{ estimativas.media_sono }}x por dia</span>
-                        </p>
-                    </div>
+                <h5 class="texto-primario"><i class="bi bi-weight-scale"></i> Histórico de Peso</h5>
+                <div class="table-responsive">
+                    <table class="table" style="color: var(--cor-texto) !important;">
+                        <thead>
+                            <tr>
+                                <th style="color: var(--cor-texto) !important;">Data</th>
+                                <th style="color: var(--cor-texto) !important;">Peso (kg)</th>
+                                <th style="color: var(--cor-texto) !important;">Altura (cm)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for p in pesos %}
+                            <tr>
+                                <td style="color: var(--cor-texto) !important;">{{ p.data.strftime('%d/%m/%Y') }}</td>
+                                <td style="color: var(--cor-texto) !important;">{{ p.peso }}</td>
+                                <td style="color: var(--cor-texto) !important;">{{ p.altura if p.altura else '-' }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
                 </div>
-                <hr style="border-color: var(--cor-primaria);">
-                <p style="color: var(--cor-texto) !important; font-size: 0.9rem;">
-                    <i class="bi bi-info-circle"></i> 
-                    <span style="color: var(--cor-texto) !important;">Baseado nos registros dos últimos 7 dias. As estimativas melhoram com mais dados.</span>
-                </p>
             </div>
         </div>
     </div>
 </div>
+{% endif %}
+
+<!-- VACINAS -->
+{% if vacinas %}
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card-leag">
+            <div class="card-body">
+                <h5 class="texto-primario"><i class="bi bi-syringe"></i> Vacinas</h5>
+                <div class="table-responsive">
+                    <table class="table" style="color: var(--cor-texto) !important;">
+                        <thead>
+                            <tr>
+                                <th style="color: var(--cor-texto) !important;">Nome</th>
+                                <th style="color: var(--cor-texto) !important;">Aplicação</th>
+                                <th style="color: var(--cor-texto) !important;">Próxima Dose</th>
+                                <th style="color: var(--cor-texto) !important;">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for v in vacinas %}
+                            <tr>
+                                <td style="color: var(--cor-texto) !important;">{{ v.nome }}</td>
+                                <td style="color: var(--cor-texto) !important;">{{ v.data_aplicacao.strftime('%d/%m/%Y') if v.data_aplicacao else '-' }}</td>
+                                <td style="color: var(--cor-texto) !important;">{{ v.proxima_dose.strftime('%d/%m/%Y') if v.proxima_dose else '-' }}</td>
+                                <td style="color: var(--cor-texto) !important;">
+                                    {% if v.aplicada %}
+                                        <span class="badge bg-success">Aplicada</span>
+                                    {% else %}
+                                        <span class="badge bg-danger">Pendente</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
 
 <!-- DICAS -->
 <div class="row mt-4">
@@ -169,6 +204,7 @@
                     <li class="mb-2" style="color: var(--cor-texto) !important;">✅ <strong style="color: var(--cor-texto) !important;">Hidratação:</strong> <span style="color: var(--cor-texto) !important;">Mínimo 6 fraldas molhadas por dia</span></li>
                     <li class="mb-2" style="color: var(--cor-texto) !important;">✅ <strong style="color: var(--cor-texto) !important;">Sono:</strong> <span style="color: var(--cor-texto) !important;">Recém-nascidos dormem 16-20h por dia (AAP)</span></li>
                     <li class="mb-2" style="color: var(--cor-texto) !important;">✅ <strong style="color: var(--cor-texto) !important;">Cocô:</strong> <span style="color: var(--cor-texto) !important;">Amamentação: até 7 dias sem cocô é normal</span></li>
+                    <li class="mb-2" style="color: var(--cor-texto) !important;">✅ <strong style="color: var(--cor-texto) !important;">Febre:</strong> <span style="color: var(--cor-texto) !important;">Acima de 38°C, consulte o pediatra</span></li>
                     <li class="mb-2" style="color: var(--cor-texto) !important;">✅ <strong style="color: var(--cor-texto) !important;">Referência:</strong> <span style="color: var(--cor-texto) !important;">American Academy of Pediatrics, OMS, UNICEF</span></li>
                 </ul>
             </div>
@@ -179,11 +215,8 @@
 <!-- BOTÃO IMPRIMIR -->
 <div class="row mt-4">
     <div class="col-12 text-center">
-        <a href="{{ url_for('relatorio_pdf') }}" class="btn btn-primario btn-lg">
-            <i class="bi bi-file-pdf"></i> Baixar Relatório em PDF
-        </a>
-        <button onclick="window.print()" class="btn btn-secondary btn-lg ms-2">
-            <i class="bi bi-printer"></i> Imprimir
+        <button onclick="window.print()" class="btn btn-primario btn-lg">
+            <i class="bi bi-printer"></i> Imprimir Relatório para o Pediatra
         </button>
     </div>
 </div>

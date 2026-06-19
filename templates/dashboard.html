@@ -181,6 +181,33 @@
     </div>
 </div>
 
+<!-- SONO - INÍCIO E FIM -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card-leag">
+            <div class="card-body">
+                <h5 class="texto-primario"><i class="bi bi-moon"></i> Registrar Sono</h5>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <button id="btnIniciarSono" class="btn btn-info w-100" onclick="iniciarSono()">
+                            <i class="bi bi-play-fill"></i> Dormiu
+                        </button>
+                    </div>
+                    <div class="col-md-6">
+                        <button id="btnPararSono" class="btn btn-danger w-100" onclick="pararSono()" style="display:none;">
+                            <i class="bi bi-stop-fill"></i> Acordou
+                        </button>
+                    </div>
+                </div>
+                <div id="statusSono" class="mt-2 text-center" style="display:none;">
+                    <span class="badge bg-warning">⏰ Dormindo...</span>
+                    <span id="tempoSono" class="ms-2">00:00</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- BOTÕES RÁPIDOS -->
 <div class="row mt-4">
     <div class="col-12">
@@ -210,8 +237,28 @@
                         </form>
                     </div>
                     <div class="col-6 col-md-2">
-                        <button type="button" class="btn btn-info w-100" data-bs-toggle="modal" data-bs-target="#modalSono">
-                            <i class="bi bi-moon"></i><br>Dormiu
+                        <button type="button" class="btn btn-info w-100" data-bs-toggle="modal" data-bs-target="#modalBanho">
+                            <i class="bi bi-droplet-half"></i><br>Banho
+                        </button>
+                    </div>
+                    <div class="col-6 col-md-2">
+                        <button type="button" class="btn btn-danger w-100" data-bs-toggle="modal" data-bs-target="#modalFebre">
+                            <i class="bi bi-thermometer"></i><br>Febre
+                        </button>
+                    </div>
+                    <div class="col-6 col-md-2">
+                        <button type="button" class="btn btn-secondary w-100" data-bs-toggle="modal" data-bs-target="#modalNariz">
+                            <i class="bi bi-nose"></i><br>Nariz Entupido
+                        </button>
+                    </div>
+                    <div class="col-6 col-md-2">
+                        <button type="button" class="btn btn-primary w-100" data-bs-toggle="modal" data-bs-target="#modalPeso">
+                            <i class="bi bi-weight-scale"></i><br>Peso
+                        </button>
+                    </div>
+                    <div class="col-6 col-md-2">
+                        <button type="button" class="btn btn-purple w-100" data-bs-toggle="modal" data-bs-target="#modalVacina">
+                            <i class="bi bi-syringe"></i><br>Vacina
                         </button>
                     </div>
                     <div class="col-6 col-md-2">
@@ -241,7 +288,11 @@
                                         {% elif r.tipo == 'Coco' %}bi-emoji-smile text-warning
                                         {% elif r.tipo == 'Xixi' %}bi-droplet text-success
                                         {% elif r.tipo == 'Regurgito' %}bi-arrow-up text-danger
-                                        {% else %}bi-moon text-info{% endif %}">
+                                        {% elif r.tipo == 'Dormiu' %}bi-moon text-info
+                                        {% elif r.tipo == 'Banho' %}bi-droplet-half text-primary
+                                        {% elif r.tipo == 'Febre' %}bi-thermometer text-danger
+                                        {% elif r.tipo == 'Nariz Entupido' %}bi-nose text-secondary
+                                        {% else %}bi-clock{% endif %}">
                                     </i>
                                     <span style="color: var(--cor-texto) !important;">{{ r.tipo }}</span>
                                     {% if r.lado %}
@@ -252,6 +303,9 @@
                                     {% endif %}
                                     {% if r.cor_coco %}
                                         <small style="color: var(--cor-texto) !important;">| Cor: {{ r.cor_coco }}</small>
+                                    {% endif %}
+                                    {% if r.temperatura %}
+                                        <small style="color: var(--cor-texto) !important;">| {{ r.temperatura }}°C</small>
                                     {% endif %}
                                 </span>
                                 <span>
@@ -273,7 +327,7 @@
     </div>
 </div>
 
-<!-- BICHINHO VIRTUAL -->
+<!-- BEBÊZINHO -->
 <div class="row mt-4">
     <div class="col-12">
         <div class="card-leag">
@@ -281,7 +335,7 @@
                 <div class="row align-items-center">
                     <div class="col-md-8">
                         <h5 class="texto-primario">
-                            <i class="bi bi-heart-fill"></i> Bichinho do Bebê
+                            <i class="bi bi-heart-fill"></i> Como está o Bebê?
                         </h5>
                         <p class="mb-0" style="color: var(--cor-texto) !important;">
                             {% if bichinho %}
@@ -293,25 +347,27 @@
                                     {% elif bichinho.humor == 'com_sono' %}😴
                                     {% elif bichinho.humor == 'brabo' %}😠
                                     {% elif bichinho.humor == 'doente' %}😷
-                                    {% elif bichinho.humor == 'maluco' %}🤪
+                                    {% elif bichinho.humor == 'cansado' %}😫
+                                    {% elif bichinho.humor == 'tranquilo' %}😌
                                     {% else %}😐{% endif %}
                                 </span>
                                 <br>
                                 <small style="color: var(--cor-texto) !important;">
                                     Felicidade: {{ bichinho.nivel_felicidade }}% | 
                                     Fome: {{ bichinho.nivel_fome }}% | 
-                                    Sono: {{ bichinho.nivel_sono }}%
+                                    Sono: {{ bichinho.nivel_sono }}% |
+                                    Saúde: {{ bichinho.nivel_saude }}%
                                 </small>
                             {% else %}
                                 <span style="color: var(--cor-texto) !important;">
-                                    O bichinho será criado automaticamente quando você registrar atividades! 🐾
+                                    O bebêzinho será criado automaticamente quando você registrar atividades! 🐾
                                 </span>
                             {% endif %}
                         </p>
                     </div>
                     <div class="col-md-4 text-end">
                         <a href="{{ url_for('bichinho') }}" class="btn btn-primario">
-                            <i class="bi bi-heart-fill"></i> Ver Bichinho
+                            <i class="bi bi-heart-fill"></i> Ver Bebê
                         </a>
                     </div>
                 </div>
@@ -320,35 +376,50 @@
     </div>
 </div>
 
-<!-- MODAL COCÔ -->
-<div class="modal fade" id="modalCoco" tabindex="-1">
+<!-- VACINAS PENDENTES -->
+{% if vacinas_pendentes %}
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card-leag" style="border: 2px solid #dc3545;">
+            <div class="card-body">
+                <h5 class="text-danger"><i class="bi bi-exclamation-triangle"></i> Vacinas Pendentes</h5>
+                {% for vacina in vacinas_pendentes %}
+                    <p class="mb-1" style="color: var(--cor-texto) !important;">
+                        💉 {{ vacina.nome }}
+                        {% if vacina.proxima_dose %}
+                            - <strong>Próxima dose:</strong> {{ vacina.proxima_dose.strftime('%d/%m/%Y') }}
+                        {% endif %}
+                    </p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- MODAIS -->
+<!-- Modal Coco (já existente) -->
+<!-- Modal Banho -->
+<div class="modal fade" id="modalBanho" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content" style="background: var(--cor-fundo-card); color: var(--cor-texto);">
             <div class="modal-header">
-                <h5 class="modal-title" style="color: var(--cor-texto) !important;">Registrar Cocô</h5>
+                <h5 class="modal-title" style="color: var(--cor-texto) !important;">Registrar Banho</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <form method="POST" action="{{ url_for('registrar') }}">
+            <form method="POST" action="{{ url_for('registrar_banho') }}">
                 <div class="modal-body">
-                    <input type="hidden" name="tipo" value="Coco">
                     <div class="mb-3">
-                        <label style="color: var(--cor-texto) !important;" class="form-label">Cor do Cocô</label>
-                        <select name="cor_coco" class="form-select form-control-leag" required>
-                            <option value="amarela">Amarela (normal)</option>
-                            <option value="verde">Verde (pode indicar alergia)</option>
-                            <option value="marrom">Marrom</option>
-                            <option value="preta">Preta (consulte pediatra)</option>
-                            <option value="branca">Branca (consulte pediatra)</option>
-                        </select>
+                        <label style="color: var(--cor-texto) !important;" class="form-label">Data e Hora</label>
+                        <input type="datetime-local" class="form-control form-control-leag" name="data_hora" required>
                     </div>
                     <div class="mb-3">
-                        <label style="color: var(--cor-texto) !important;" class="form-label">Consistência</label>
-                        <select name="consistencia_coco" class="form-select form-control-leag" required>
-                            <option value="pastosa">Pastosa (normal)</option>
-                            <option value="liquida">Líquida (diarreia)</option>
-                            <option value="dura">Dura (prisão de ventre)</option>
-                            <option value="com_muco">Com muco (consulte pediatra)</option>
-                        </select>
+                        <label style="color: var(--cor-texto) !important;" class="form-label">Duração (minutos)</label>
+                        <input type="number" class="form-control form-control-leag" name="duracao" placeholder="Ex: 10">
+                    </div>
+                    <div class="mb-3">
+                        <label style="color: var(--cor-texto) !important;" class="form-label">Observação</label>
+                        <textarea class="form-control form-control-leag" name="observacao" rows="2"></textarea>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -360,32 +431,120 @@
     </div>
 </div>
 
-<!-- MODAL SONO -->
-<div class="modal fade" id="modalSono" tabindex="-1">
+<!-- Modal Febre -->
+<div class="modal fade" id="modalFebre" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content" style="background: var(--cor-fundo-card); color: var(--cor-texto);">
             <div class="modal-header">
-                <h5 class="modal-title" style="color: var(--cor-texto) !important;">Registrar Sono</h5>
+                <h5 class="modal-title" style="color: var(--cor-texto) !important;">Registrar Febre</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <form method="POST" action="{{ url_for('registrar') }}">
+            <form method="POST" action="{{ url_for('registrar_febre') }}">
                 <div class="modal-body">
-                    <input type="hidden" name="tipo" value="Dormiu">
                     <div class="mb-3">
-                        <label style="color: var(--cor-texto) !important;" class="form-label">Hora que dormiu</label>
-                        <input type="time" class="form-control form-control-leag" name="inicio_sono" required>
+                        <label style="color: var(--cor-texto) !important;" class="form-label">Temperatura (°C)</label>
+                        <input type="number" step="0.1" class="form-control form-control-leag" name="temperatura" placeholder="Ex: 37.5" required>
                     </div>
                     <div class="mb-3">
-                        <label style="color: var(--cor-texto) !important;" class="form-label">Hora que acordou</label>
-                        <input type="time" class="form-control form-control-leag" name="fim_sono" required>
-                    </div>
-                    <div class="alert alert-info" style="background: var(--cor-fundo-card); color: var(--cor-texto); border-color: var(--cor-primaria);">
-                        <i class="bi bi-info-circle"></i> O app vai calcular automaticamente a duração do sono.
+                        <label style="color: var(--cor-texto) !important;" class="form-label">Observação</label>
+                        <textarea class="form-control form-control-leag" name="observacao" rows="2"></textarea>
                     </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="submit" class="btn btn-primario">Registrar Sono</button>
+                    <button type="submit" class="btn btn-primario">Registrar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Nariz Entupido -->
+<div class="modal fade" id="modalNariz" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content" style="background: var(--cor-fundo-card); color: var(--cor-texto);">
+            <div class="modal-header">
+                <h5 class="modal-title" style="color: var(--cor-texto) !important;">Registrar Nariz Entupido</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{{ url_for('registrar_nariz') }}">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label style="color: var(--cor-texto) !important;" class="form-label">Observação</label>
+                        <textarea class="form-control form-control-leag" name="observacao" rows="2"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primario">Registrar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Peso -->
+<div class="modal fade" id="modalPeso" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content" style="background: var(--cor-fundo-card); color: var(--cor-texto);">
+            <div class="modal-header">
+                <h5 class="modal-title" style="color: var(--cor-texto) !important;">Registrar Peso</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{{ url_for('registrar_peso') }}">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label style="color: var(--cor-texto) !important;" class="form-label">Peso (kg)</label>
+                        <input type="number" step="0.1" class="form-control form-control-leag" name="peso" placeholder="Ex: 5.2" required>
+                    </div>
+                    <div class="mb-3">
+                        <label style="color: var(--cor-texto) !important;" class="form-label">Altura (cm)</label>
+                        <input type="number" step="0.5" class="form-control form-control-leag" name="altura" placeholder="Ex: 62">
+                    </div>
+                    <div class="mb-3">
+                        <label style="color: var(--cor-texto) !important;" class="form-label">Data</label>
+                        <input type="date" class="form-control form-control-leag" name="data">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primario">Registrar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Vacina -->
+<div class="modal fade" id="modalVacina" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content" style="background: var(--cor-fundo-card); color: var(--cor-texto);">
+            <div class="modal-header">
+                <h5 class="modal-title" style="color: var(--cor-texto) !important;">Registrar Vacina</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{{ url_for('registrar_vacina') }}">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label style="color: var(--cor-texto) !important;" class="form-label">Nome da Vacina</label>
+                        <input type="text" class="form-control form-control-leag" name="nome" placeholder="Ex: BCG" required>
+                    </div>
+                    <div class="mb-3">
+                        <label style="color: var(--cor-texto) !important;" class="form-label">Data de Aplicação</label>
+                        <input type="date" class="form-control form-control-leag" name="data_aplicacao">
+                    </div>
+                    <div class="mb-3">
+                        <label style="color: var(--cor-texto) !important;" class="form-label">Próxima Dose</label>
+                        <input type="date" class="form-control form-control-leag" name="proxima_dose">
+                    </div>
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" class="form-check-input" name="aplicada" checked>
+                        <label class="form-check-label" style="color: var(--cor-texto) !important;">Já foi aplicada</label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primario">Registrar</button>
                 </div>
             </form>
         </div>
@@ -393,6 +552,7 @@
 </div>
 
 <script>
+// MAMADA
 let cronometroInterval = null;
 let segundos = 0;
 let minutos = 0;
@@ -452,7 +612,64 @@ function pararMamada() {
     });
 }
 
-// Atualizar status do bichinho na dashboard
+// SONO
+let sonoInterval = null;
+let sonoSegundos = 0;
+let sonoMinutos = 0;
+let estaDormindo = false;
+
+function iniciarSono() {
+    if (estaDormindo) return;
+    
+    estaDormindo = true;
+    sonoSegundos = 0;
+    sonoMinutos = 0;
+    document.getElementById('btnIniciarSono').style.display = 'none';
+    document.getElementById('btnPararSono').style.display = 'block';
+    document.getElementById('statusSono').style.display = 'block';
+    document.getElementById('tempoSono').textContent = '00:00';
+    
+    fetch('/api/iniciar_sono', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'}
+    });
+    
+    sonoInterval = setInterval(function() {
+        sonoSegundos++;
+        if (sonoSegundos >= 60) {
+            sonoSegundos = 0;
+            sonoMinutos++;
+        }
+        document.getElementById('tempoSono').textContent = 
+            String(sonoMinutos).padStart(2, '0') + ':' + String(sonoSegundos).padStart(2, '0');
+    }, 1000);
+}
+
+function pararSono() {
+    if (!estaDormindo) return;
+    
+    estaDormindo = false;
+    clearInterval(sonoInterval);
+    const tempo = document.getElementById('tempoSono').textContent;
+    
+    document.getElementById('btnPararSono').style.display = 'none';
+    document.getElementById('btnIniciarSono').style.display = 'block';
+    document.getElementById('statusSono').style.display = 'none';
+    
+    fetch('/api/parar_sono', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'}
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Sono registrado! Duração: ' + tempo);
+            location.reload();
+        }
+    });
+}
+
+// BEBÊZINHO
 function atualizarStatusBichinho() {
     fetch('/api/humor_bichinho')
         .then(response => response.json())
@@ -470,7 +687,8 @@ function atualizarStatusBichinho() {
                         'com_sono': '😴',
                         'brabo': '😠',
                         'doente': '😷',
-                        'maluco': '🤪',
+                        'cansado': '😫',
+                        'tranquilo': '😌',
                         'neutro': '😐'
                     };
                     emojiDash.textContent = emojis[data.humor] || '😐';
@@ -480,10 +698,35 @@ function atualizarStatusBichinho() {
         .catch(error => console.error('Erro:', error));
 }
 
-// Atualizar a cada 30 segundos
 setInterval(atualizarStatusBichinho, 30000);
-
-// Atualizar ao carregar
-document.addEventListener('DOMContentLoaded', atualizarStatusBichinho);
+document.addEventListener('DOMContentLoaded', function() {
+    atualizarStatusBichinho();
+    
+    // Verificar se há mamada ativa
+    fetch('/api/status_mamada')
+        .then(response => response.json())
+        .then(data => {
+            if (data.ativa) {
+                estaMamando = true;
+                document.getElementById('btnIniciarMamada').style.display = 'none';
+                document.getElementById('btnPararMamada').style.display = 'block';
+                document.getElementById('statusMamada').style.display = 'inline';
+                document.getElementById('cronometroDisplay').textContent = data.tempo;
+                // Continuar cronômetro
+                const partes = data.tempo.split(':');
+                minutos = parseInt(partes[0]);
+                segundos = parseInt(partes[1]);
+                cronometroInterval = setInterval(function() {
+                    segundos++;
+                    if (segundos >= 60) {
+                        segundos = 0;
+                        minutos++;
+                    }
+                    document.getElementById('cronometroDisplay').textContent = 
+                        String(minutos).padStart(2, '0') + ':' + String(segundos).padStart(2, '0');
+                }, 1000);
+            }
+        });
+});
 </script>
 {% endblock %}
