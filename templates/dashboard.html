@@ -38,13 +38,13 @@
 {% if dica %}
 <div class="row mb-4">
     <div class="col-12">
-        <div class="card-leag bg-primario-light">
+        <div class="card-leag" style="background-color: var(--cor-fundo-card); border: 2px solid var(--cor-primaria); border-radius: 15px; padding: 15px;">
             <div class="card-body">
-                <h5 class="texto-primario">
+                <h5 style="color: var(--cor-primaria) !important;">
                     <i class="bi bi-flask"></i> Dica Científica
                 </h5>
-                <p class="mb-0 texto-dica"><strong>{{ dica.titulo }}</strong></p>
-                <p class="mb-0 small texto-dica">{{ dica.descricao }}</p>
+                <p style="color: var(--cor-texto) !important; font-weight: bold; margin-bottom: 5px;">{{ dica.titulo }}</p>
+                <p style="color: var(--cor-texto) !important; font-size: 0.9rem; margin-bottom: 0;">{{ dica.descricao }}</p>
             </div>
         </div>
     </div>
