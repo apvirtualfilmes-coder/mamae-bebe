@@ -3,7 +3,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime, timedelta
-from models import db, Usuario, Registro, DicaCientifica
+from models import db, Usuario, Registro, DicaCientifica, BichinhoVirtual
 import os
 from dotenv import load_dotenv
 from io import BytesIO
@@ -182,6 +182,9 @@ def cadastrar():
             db.session.add(usuario)
             db.session.commit()
             
+            # Criar bichinho virtual automaticamente
+            criar_bichinho_inicial(usuario.id)
+            
             flash('Cadastro realizado com sucesso! Faça login.', 'success')
             return redirect(url_for('login'))
             
@@ -243,6 +246,11 @@ def dashboard():
         # Buscar dica científica relevante
         dica = buscar_dica_cientifica(stats)
         
+        # Atualizar bichinho virtual
+        bichinho = BichinhoVirtual.query.filter_by(usuario_id=current_user.id).first()
+        if bichinho:
+            atualizar_niveis_bichinho(bichinho)
+        
         return render_template('dashboard.html', 
                              registros=registros_hoje[:10],
                              stats=stats,
@@ -250,7 +258,8 @@ def dashboard():
                              datetime=datetime,
                              idade=idade,
                              alerta_mamada=alerta_mamada,
-                             dica=dica)
+                             dica=dica,
+                             bichinho=bichinho)
     except Exception as e:
         flash(f'Erro ao carregar dashboard: {str(e)}', 'danger')
         return render_template('dashboard.html', registros=[], stats={}, ultima_mamada=None, datetime=datetime)
@@ -295,6 +304,11 @@ def registrar():
         db.session.add(registro)
         db.session.commit()
         
+        # Atualizar bichinho virtual
+        bichinho = BichinhoVirtual.query.filter_by(usuario_id=current_user.id).first()
+        if bichinho:
+            atualizar_niveis_bichinho(bichinho)
+        
         flash(f'{tipo} registrado com sucesso!', 'success')
     except Exception as e:
         db.session.rollback()
@@ -310,6 +324,12 @@ def excluir_registro(registro_id):
         if registro and registro.usuario_id == current_user.id:
             db.session.delete(registro)
             db.session.commit()
+            
+            # Atualizar bichinho virtual
+            bichinho = BichinhoVirtual.query.filter_by(usuario_id=current_user.id).first()
+            if bichinho:
+                atualizar_niveis_bichinho(bichinho)
+            
             flash('Registro excluído com sucesso!', 'success')
         else:
             flash('Registro não encontrado.', 'danger')
@@ -421,6 +441,85 @@ def relatorio():
     except Exception as e:
         flash(f'Erro ao carregar relatório: {str(e)}', 'danger')
         return render_template('relatorio.html', dados=[], detalhes=[], estimativas={})
+
+@app.route('/bichinho')
+@login_required
+def bichinho():
+    bichinho = BichinhoVirtual.query.filter_by(usuario_id=current_user.id).first()
+    if not bichinho:
+        criar_bichinho_inicial(current_user.id)
+        bichinho = BichinhoVirtual.query.filter_by(usuario_id=current_user.id).first()
+    
+    return render_template('bichinho.html', bichinho=bichinho)
+
+@app.route('/api/humor_bichinho')
+@login_required
+def api_humor_bichinho():
+    try:
+        bichinho = BichinhoVirtual.query.filter_by(usuario_id=current_user.id).first()
+        if not bichinho:
+            criar_bichinho_inicial(current_user.id)
+            bichinho = BichinhoVirtual.query.filter_by(usuario_id=current_user.id).first()
+        
+        atualizar_niveis_bichinho(bichinho)
+        
+        # Mapeamento de humores para emojis
+        emojis = {
+            'feliz': '😊',
+            'brincalhao': '😄',
+            'com_fome': '😋',
+            'com_sono': '😴',
+            'brabo': '😠',
+            'doente': '😷',
+            'maluco': '🤪',
+            'neutro': '😐'
+        }
+        
+        return jsonify({
+            'humor': bichinho.humor,
+            'felicidade': bichinho.nivel_felicidade,
+            'fome': bichinho.nivel_fome,
+            'sono': bichinho.nivel_sono,
+            'energia': bichinho.nivel_energia,
+            'emoji': emojis.get(bichinho.humor, '😐')
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/interagir_bichinho', methods=['POST'])
+@login_required
+def api_interagir_bichinho():
+    try:
+        acao = request.json.get('acao')
+        bichinho = BichinhoVirtual.query.filter_by(usuario_id=current_user.id).first()
+        
+        if not bichinho:
+            return jsonify({'error': 'Bichinho não encontrado'}), 404
+        
+        # Interações
+        if acao == 'carinho':
+            bichinho.nivel_felicidade = min(100, bichinho.nivel_felicidade + 10)
+            flash('🥰 Você fez carinho no bichinho!', 'success')
+        elif acao == 'alimentar':
+            bichinho.nivel_fome = max(0, bichinho.nivel_fome - 20)
+            bichinho.nivel_felicidade = min(100, bichinho.nivel_felicidade + 5)
+            flash('🍼 Você alimentou o bichinho!', 'success')
+        elif acao == 'dormir':
+            bichinho.nivel_sono = max(0, bichinho.nivel_sono - 20)
+            bichinho.nivel_energia = min(100, bichinho.nivel_energia + 10)
+            flash('😴 Você colocou o bichinho para dormir!', 'success')
+        elif acao == 'brincar':
+            bichinho.nivel_felicidade = min(100, bichinho.nivel_felicidade + 15)
+            bichinho.nivel_energia = max(0, bichinho.nivel_energia - 10)
+            flash('🎉 Você brincou com o bichinho!', 'success')
+        
+        db.session.commit()
+        atualizar_niveis_bichinho(bichinho)
+        
+        return jsonify({'success': True})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
 
 @app.route('/relatorio_pdf')
 @login_required
@@ -556,6 +655,11 @@ def api_parar_mamada():
         db.session.add(registro)
         db.session.commit()
         
+        # Atualizar bichinho virtual
+        bichinho = BichinhoVirtual.query.filter_by(usuario_id=current_user.id).first()
+        if bichinho:
+            atualizar_niveis_bichinho(bichinho)
+        
         session.pop('mamada_inicio', None)
         session.pop('mamada_lado', None)
         
@@ -565,6 +669,88 @@ def api_parar_mamada():
         return jsonify({'success': False, 'error': str(e)}), 500
 
 # ========== FUNÇÕES AUXILIARES ==========
+
+def criar_bichinho_inicial(usuario_id):
+    try:
+        bichinho = BichinhoVirtual(
+            usuario_id=usuario_id,
+            humor='neutro',
+            nivel_felicidade=50,
+            nivel_fome=50,
+            nivel_sono=50,
+            nivel_energia=50
+        )
+        db.session.add(bichinho)
+        db.session.commit()
+        print(f"✅ Bichinho virtual criado para usuário {usuario_id}")
+    except Exception as e:
+        print(f"❌ Erro ao criar bichinho: {e}")
+
+def atualizar_niveis_bichinho(bichinho):
+    hoje = datetime.now().date()
+    
+    # Buscar registros de hoje
+    registros_hoje = Registro.query.filter(
+        db.func.date(Registro.data_hora) == hoje,
+        Registro.usuario_id == bichinho.usuario_id
+    ).all()
+    
+    mamadas = sum(1 for r in registros_hoje if r.tipo == 'Mamou')
+    sono = sum(1 for r in registros_hoje if r.tipo == 'Dormiu')
+    coco = sum(1 for r in registros_hoje if r.tipo == 'Coco')
+    xixi = sum(1 for r in registros_hoje if r.tipo == 'Xixi')
+    regurgito = sum(1 for r in registros_hoje if r.tipo == 'Regurgito')
+    
+    # Calcular níveis
+    # Fome: quanto mais mamadas, menos fome
+    if mamadas >= 8:
+        bichinho.nivel_fome = max(0, bichinho.nivel_fome - 10)
+    elif mamadas >= 5:
+        bichinho.nivel_fome = max(0, bichinho.nivel_fome - 5)
+    else:
+        bichinho.nivel_fome = min(100, bichinho.nivel_fome + 10)
+    
+    # Sono: quanto mais dormiu, mais energia
+    if sono >= 3:
+        bichinho.nivel_sono = max(0, bichinho.nivel_sono - 10)
+        bichinho.nivel_energia = min(100, bichinho.nivel_energia + 10)
+    elif sono >= 1:
+        bichinho.nivel_sono = max(0, bichinho.nivel_sono - 5)
+        bichinho.nivel_energia = min(100, bichinho.nivel_energia + 5)
+    else:
+        bichinho.nivel_sono = min(100, bichinho.nivel_sono + 10)
+        bichinho.nivel_energia = max(0, bichinho.nivel_energia - 10)
+    
+    # Felicidade: influenciada por tudo
+    if mamadas >= 8 and sono >= 3 and coco >= 1:
+        bichinho.nivel_felicidade = min(100, bichinho.nivel_felicidade + 10)
+    elif mamadas < 5 or sono < 1:
+        bichinho.nivel_felicidade = max(0, bichinho.nivel_felicidade - 10)
+    else:
+        bichinho.nivel_felicidade = min(100, max(0, bichinho.nivel_felicidade + 2))
+    
+    # Determinar humor
+    if bichinho.nivel_felicidade >= 80:
+        if bichinho.nivel_energia >= 70:
+            bichinho.humor = 'brincalhao'
+        else:
+            bichinho.humor = 'feliz'
+    elif bichinho.nivel_fome >= 70:
+        bichinho.humor = 'com_fome'
+    elif bichinho.nivel_sono >= 70:
+        bichinho.humor = 'com_sono'
+    elif bichinho.nivel_felicidade <= 20:
+        if regurgito >= 2 or bichinho.nivel_fome >= 80:
+            bichinho.humor = 'doente'
+        else:
+            bichinho.humor = 'brabo'
+    elif bichinho.nivel_felicidade >= 60 and bichinho.nivel_energia >= 60:
+        bichinho.humor = 'maluco'
+    else:
+        bichinho.humor = 'neutro'
+    
+    bichinho.ultima_atualizacao = datetime.utcnow()
+    db.session.commit()
 
 def calcular_idade_exata(usuario):
     if not usuario.data_nasc_bebe or not usuario.hora_nasc_bebe:

@@ -1,0 +1,209 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-12 col-md-8 col-lg-6">
+        <div class="card-leag text-center">
+            <div class="card-body">
+                <h4 class="texto-primario">
+                    <i class="bi bi-heart-fill"></i> Bichinho do Bebê
+                </h4>
+                
+                <p class="text-muted">
+                    <i class="bi bi-info-circle"></i> 
+                    O humor do bichinho reflete como o bebê está se sentindo
+                </p>
+                
+                <!-- Emoji do Bichinho -->
+                <div class="my-4">
+                    <div id="emojiBichinho" style="font-size: 120px; line-height: 1.2;">
+                        😐
+                    </div>
+                    <h5 id="humorTexto" class="mt-2 texto-primario">Neutro</h5>
+                </div>
+                
+                <!-- Nome do Bebê -->
+                <h5 class="texto-primario">{{ current_user.nome_bebe or 'Bebê' }}</h5>
+                <p class="text-muted">Estado: <span id="humorBichinho">neutro</span></p>
+                
+                <!-- Barras de Status -->
+                <div class="mt-4">
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between">
+                            <span><i class="bi bi-heart-fill text-danger"></i> Felicidade</span>
+                            <span id="felicidadeTexto">50%</span>
+                        </div>
+                        <div class="progress">
+                            <div id="felicidadeBarra" 
+                                 class="progress-bar bg-danger" 
+                                 role="progressbar" 
+                                 style="width: 50%;">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between">
+                            <span><i class="bi bi-cup-hot text-warning"></i> Fome</span>
+                            <span id="fomeTexto">50%</span>
+                        </div>
+                        <div class="progress">
+                            <div id="fomeBarra" 
+                                 class="progress-bar bg-warning" 
+                                 role="progressbar" 
+                                 style="width: 50%;">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between">
+                            <span><i class="bi bi-moon text-primary"></i> Sono</span>
+                            <span id="sonoTexto">50%</span>
+                        </div>
+                        <div class="progress">
+                            <div id="sonoBarra" 
+                                 class="progress-bar bg-primary" 
+                                 role="progressbar" 
+                                 style="width: 50%;">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between">
+                            <span><i class="bi bi-lightning-fill text-success"></i> Energia</span>
+                            <span id="energiaTexto">50%</span>
+                        </div>
+                        <div class="progress">
+                            <div id="energiaBarra" 
+                                 class="progress-bar bg-success" 
+                                 role="progressbar" 
+                                 style="width: 50%;">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Botões de Interação -->
+                <div class="row g-2 mt-4">
+                    <div class="col-6">
+                        <button onclick="interagir('carinho')" class="btn btn-primario w-100">
+                            <i class="bi bi-hand-thumbs-up"></i> Carinho
+                        </button>
+                    </div>
+                    <div class="col-6">
+                        <button onclick="interagir('alimentar')" class="btn btn-success w-100">
+                            <i class="bi bi-cup-hot"></i> Alimentar
+                        </button>
+                    </div>
+                    <div class="col-6">
+                        <button onclick="interagir('dormir')" class="btn btn-info w-100">
+                            <i class="bi bi-moon"></i> Dormir
+                        </button>
+                    </div>
+                    <div class="col-6">
+                        <button onclick="interagir('brincar')" class="btn btn-warning w-100">
+                            <i class="bi bi-stars"></i> Brincar
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Botão Atualizar -->
+                <button onclick="atualizarBichinho()" class="btn btn-secondary w-100 mt-3">
+                    <i class="bi bi-arrow-clockwise"></i> Atualizar Status
+                </button>
+                
+                <!-- Voltar -->
+                <a href="{{ url_for('dashboard') }}" class="btn btn-outline-secondary w-100 mt-2">
+                    <i class="bi bi-arrow-left"></i> Voltar ao Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Mapeamento de humores para emojis
+const emojis = {
+    'feliz': '😊',
+    'brincalhao': '😄',
+    'com_fome': '😋',
+    'com_sono': '😴',
+    'brabo': '😠',
+    'doente': '😷',
+    'maluco': '🤪',
+    'neutro': '😐'
+};
+
+const nomesHumores = {
+    'feliz': 'Feliz 😊',
+    'brincalhao': 'Brincalhão 😄',
+    'com_fome': 'Com Fome 😋',
+    'com_sono': 'Com Sono 😴',
+    'brabo': 'Brabo 😠',
+    'doente': 'Doente 😷',
+    'maluco': 'Maluco 🤪',
+    'neutro': 'Neutro 😐'
+};
+
+function atualizarBichinho() {
+    fetch('/api/humor_bichinho')
+        .then(response => response.json())
+        .then(data => {
+            if (data.humor) {
+                // Atualizar emoji
+                const emoji = document.getElementById('emojiBichinho');
+                if (emojis[data.humor]) {
+                    emoji.textContent = emojis[data.humor];
+                }
+                
+                // Atualizar humor
+                document.getElementById('humorBichinho').textContent = data.humor;
+                document.getElementById('humorTexto').textContent = nomesHumores[data.humor] || data.humor;
+                
+                // Atualizar barras
+                document.getElementById('felicidadeTexto').textContent = data.felicidade + '%';
+                document.getElementById('felicidadeBarra').style.width = data.felicidade + '%';
+                
+                document.getElementById('fomeTexto').textContent = data.fome + '%';
+                document.getElementById('fomeBarra').style.width = data.fome + '%';
+                
+                document.getElementById('sonoTexto').textContent = data.sono + '%';
+                document.getElementById('sonoBarra').style.width = data.sono + '%';
+                
+                document.getElementById('energiaTexto').textContent = data.energia + '%';
+                document.getElementById('energiaBarra').style.width = data.energia + '%';
+            }
+        })
+        .catch(error => {
+            console.error('Erro:', error);
+        });
+}
+
+function interagir(acao) {
+    fetch('/api/interagir_bichinho', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({acao: acao})
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            atualizarBichinho();
+        }
+    })
+    .catch(error => {
+        console.error('Erro:', error);
+    });
+}
+
+// Atualizar automaticamente a cada 30 segundos
+setInterval(atualizarBichinho, 30000);
+
+// Atualizar ao carregar a página
+document.addEventListener('DOMContentLoaded', atualizarBichinho);
+</script>
+{% endblock %}

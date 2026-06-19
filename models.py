@@ -20,9 +20,7 @@ class Usuario(UserMixin, db.Model):
     criado_em = db.Column(db.DateTime, default=datetime.utcnow)
     
     registros = db.relationship('Registro', backref='usuario', lazy=True, cascade='all, delete-orphan')
-    pesos = db.relationship('PesoRegistro', backref='usuario', lazy=True, cascade='all, delete-orphan')
-    vacinas = db.relationship('Vacina', backref='usuario', lazy=True, cascade='all, delete-orphan')
-    marcos = db.relationship('MarcoDesenvolvimento', backref='usuario', lazy=True, cascade='all, delete-orphan')
+    bichinho = db.relationship('BichinhoVirtual', backref='usuario', lazy=True, uselist=False)
 
 class Registro(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -35,6 +33,16 @@ class Registro(db.Model):
     temperatura = db.Column(db.Float)
     data_hora = db.Column(db.DateTime, default=datetime.utcnow)
     observacao = db.Column(db.Text)
+
+class BichinhoVirtual(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    usuario_id = db.Column(db.Integer, db.ForeignKey('usuario.id'), nullable=False)
+    humor = db.Column(db.String(50), default='neutro')
+    ultima_atualizacao = db.Column(db.DateTime, default=datetime.utcnow)
+    nivel_felicidade = db.Column(db.Integer, default=50)
+    nivel_fome = db.Column(db.Integer, default=50)
+    nivel_sono = db.Column(db.Integer, default=50)
+    nivel_energia = db.Column(db.Integer, default=50)
 
 class PesoRegistro(db.Model):
     id = db.Column(db.Integer, primary_key=True)
