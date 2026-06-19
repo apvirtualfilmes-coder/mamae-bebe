@@ -717,6 +717,75 @@ def api_parar_sono():
         db.session.rollback()
         return jsonify({'success': False, 'error': str(e)}), 500
 
+@app.route('/api/status_sono')
+@login_required
+def api_status_sono():
+    try:
+        if current_user.inicio_sono:
+            inicio = current_user.inicio_sono
+            diff = datetime.now() - inicio
+            minutos = int(diff.total_seconds() // 60)
+            segundos = int(diff.total_seconds() % 60)
+            return jsonify({
+                'ativa': True,
+                'tempo': f'{minutos:02d}:{segundos:02d}'
+            })
+        return jsonify({'ativa': False})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+# ===== ROTAS DE VACINAS (EDITAR/EXCLUIR) =====
+
+@app.route('/editar_vacina/<int:vacina_id>', methods=['POST'])
+@login_required
+def editar_vacina(vacina_id):
+    try:
+        vacina = Vacina.query.get(vacina_id)
+        if not vacina or vacina.usuario_id != current_user.id:
+            flash('Vacina não encontrada.', 'danger')
+            return redirect(url_for('relatorio'))
+        
+        vacina.nome = request.form.get('nome')
+        data_aplicacao = request.form.get('data_aplicacao')
+        proxima_dose = request.form.get('proxima_dose')
+        vacina.aplicada = request.form.get('aplicada') == 'on'
+        
+        if data_aplicacao:
+            vacina.data_aplicacao = datetime.strptime(data_aplicacao, '%Y-%m-%d').date()
+        else:
+            vacina.data_aplicacao = None
+            
+        if proxima_dose:
+            vacina.proxima_dose = datetime.strptime(proxima_dose, '%Y-%m-%d').date()
+        else:
+            vacina.proxima_dose = None
+        
+        db.session.commit()
+        flash('💉 Vacina atualizada com sucesso!', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Erro ao editar vacina: {str(e)}', 'danger')
+    
+    return redirect(url_for('relatorio'))
+
+@app.route('/excluir_vacina/<int:vacina_id>', methods=['POST'])
+@login_required
+def excluir_vacina(vacina_id):
+    try:
+        vacina = Vacina.query.get(vacina_id)
+        if not vacina or vacina.usuario_id != current_user.id:
+            flash('Vacina não encontrada.', 'danger')
+            return redirect(url_for('relatorio'))
+        
+        db.session.delete(vacina)
+        db.session.commit()
+        flash('💉 Vacina excluída com sucesso!', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Erro ao excluir vacina: {str(e)}', 'danger')
+    
+    return redirect(url_for('relatorio'))
+
 # ========== FUNÇÕES AUXILIARES ==========
 
 def criar_bichinho_inicial(usuario_id):
