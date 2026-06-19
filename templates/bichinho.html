@@ -14,12 +14,14 @@
                     O humor do bichinho reflete como o bebê está se sentindo
                 </p>
                 
-                <!-- Emoji do Bichinho -->
+                <!-- Imagem do Bichinho -->
                 <div class="my-4">
-                    <div id="emojiBichinho" style="font-size: 120px; line-height: 1.2;">
-                        😐
-                    </div>
-                    <h5 id="humorTexto" class="mt-2 texto-primario">Neutro</h5>
+                    <img id="imagemBichinho" 
+                         src="{{ url_for('static', filename='bichinho/neutro.png') }}" 
+                         alt="Bichinho Virtual"
+                         class="img-fluid"
+                         style="max-width: 200px; border-radius: 20px; image-rendering: auto;">
+                    <h5 id="humorTexto" class="mt-2 texto-primario">Neutro 😐</h5>
                 </div>
                 
                 <!-- Nome do Bebê -->
@@ -34,11 +36,7 @@
                             <span id="felicidadeTexto">50%</span>
                         </div>
                         <div class="progress">
-                            <div id="felicidadeBarra" 
-                                 class="progress-bar bg-danger" 
-                                 role="progressbar" 
-                                 style="width: 50%;">
-                            </div>
+                            <div id="felicidadeBarra" class="progress-bar bg-danger" role="progressbar" style="width: 50%;"></div>
                         </div>
                     </div>
                     
@@ -48,11 +46,7 @@
                             <span id="fomeTexto">50%</span>
                         </div>
                         <div class="progress">
-                            <div id="fomeBarra" 
-                                 class="progress-bar bg-warning" 
-                                 role="progressbar" 
-                                 style="width: 50%;">
-                            </div>
+                            <div id="fomeBarra" class="progress-bar bg-warning" role="progressbar" style="width: 50%;"></div>
                         </div>
                     </div>
                     
@@ -62,11 +56,7 @@
                             <span id="sonoTexto">50%</span>
                         </div>
                         <div class="progress">
-                            <div id="sonoBarra" 
-                                 class="progress-bar bg-primary" 
-                                 role="progressbar" 
-                                 style="width: 50%;">
-                            </div>
+                            <div id="sonoBarra" class="progress-bar bg-primary" role="progressbar" style="width: 50%;"></div>
                         </div>
                     </div>
                     
@@ -76,11 +66,7 @@
                             <span id="energiaTexto">50%</span>
                         </div>
                         <div class="progress">
-                            <div id="energiaBarra" 
-                                 class="progress-bar bg-success" 
-                                 role="progressbar" 
-                                 style="width: 50%;">
-                            </div>
+                            <div id="energiaBarra" class="progress-bar bg-success" role="progressbar" style="width: 50%;"></div>
                         </div>
                     </div>
                 </div>
@@ -124,16 +110,16 @@
 </div>
 
 <script>
-// Mapeamento de humores para emojis
-const emojis = {
-    'feliz': '😊',
-    'brincalhao': '😄',
-    'com_fome': '😋',
-    'com_sono': '😴',
-    'brabo': '😠',
-    'doente': '😷',
-    'maluco': '🤪',
-    'neutro': '😐'
+// Mapeamento de humores para imagens
+const imagens = {
+    'feliz': "{{ url_for('static', filename='bichinho/feliz.png') }}",
+    'brincalhao': "{{ url_for('static', filename='bichinho/brincalhao.png') }}",
+    'com_fome': "{{ url_for('static', filename='bichinho/com_fome.png') }}",
+    'com_sono': "{{ url_for('static', filename='bichinho/com_sono.png') }}",
+    'brabo': "{{ url_for('static', filename='bichinho/brabo.png') }}",
+    'doente': "{{ url_for('static', filename='bichinho/doente.png') }}",
+    'maluco': "{{ url_for('static', filename='bichinho/maluco.png') }}",
+    'neutro': "{{ url_for('static', filename='bichinho/neutro.png') }}"
 };
 
 const nomesHumores = {
@@ -152,41 +138,34 @@ function atualizarBichinho() {
         .then(response => response.json())
         .then(data => {
             if (data.humor) {
-                // Atualizar emoji
-                const emoji = document.getElementById('emojiBichinho');
-                if (emojis[data.humor]) {
-                    emoji.textContent = emojis[data.humor];
+                // Atualizar imagem
+                const img = document.getElementById('imagemBichinho');
+                if (imagens[data.humor]) {
+                    img.src = imagens[data.humor];
                 }
                 
-                // Atualizar humor
+                // Atualizar textos
                 document.getElementById('humorBichinho').textContent = data.humor;
                 document.getElementById('humorTexto').textContent = nomesHumores[data.humor] || data.humor;
                 
                 // Atualizar barras
                 document.getElementById('felicidadeTexto').textContent = data.felicidade + '%';
                 document.getElementById('felicidadeBarra').style.width = data.felicidade + '%';
-                
                 document.getElementById('fomeTexto').textContent = data.fome + '%';
                 document.getElementById('fomeBarra').style.width = data.fome + '%';
-                
                 document.getElementById('sonoTexto').textContent = data.sono + '%';
                 document.getElementById('sonoBarra').style.width = data.sono + '%';
-                
                 document.getElementById('energiaTexto').textContent = data.energia + '%';
                 document.getElementById('energiaBarra').style.width = data.energia + '%';
             }
         })
-        .catch(error => {
-            console.error('Erro:', error);
-        });
+        .catch(error => console.error('Erro:', error));
 }
 
 function interagir(acao) {
     fetch('/api/interagir_bichinho', {
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
+        headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({acao: acao})
     })
     .then(response => response.json())
@@ -195,9 +174,7 @@ function interagir(acao) {
             atualizarBichinho();
         }
     })
-    .catch(error => {
-        console.error('Erro:', error);
-    });
+    .catch(error => console.error('Erro:', error));
 }
 
 // Atualizar automaticamente a cada 30 segundos
