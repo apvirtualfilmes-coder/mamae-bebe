@@ -8,11 +8,9 @@
                 <h4 class="texto-primario">
                     <i class="bi bi-file-text"></i> Relatório do Bebê
                 </h4>
-                <p class="mb-0" style="color: var(--cor-texto) !important;">
-                    <strong style="color: var(--cor-texto) !important;">Nome:</strong> 
-                    <span style="color: var(--cor-texto) !important;">{{ nome_bebe }}</span> | 
-                    <strong style="color: var(--cor-texto) !important;">Idade:</strong> 
-                    <span style="color: var(--cor-texto) !important;">{{ idade }}</span>
+                <p class="mb-0">
+                    <strong>Nome:</strong> {{ nome_bebe }} | 
+                    <strong>Idade:</strong> {{ idade }}
                 </p>
             </div>
         </div>
@@ -22,7 +20,7 @@
 <!-- AVALIAÇÃO -->
 <div class="row mt-4">
     <div class="col-12">
-        <div class="card-leag bg-primario-light">
+        <div class="card-leag" style="background-color: var(--cor-fundo-card); border: 1px solid var(--cor-primaria);">
             <div class="card-body">
                 <h5 class="texto-primario"><i class="bi bi-clipboard-check"></i> Avaliação Geral</h5>
                 <p class="mb-0" style="color: var(--cor-texto) !important;">{{ avaliacao }}</p>
@@ -39,7 +37,7 @@
                 <h5 class="texto-primario"><i class="bi bi-graph-up"></i> Últimos 7 Dias</h5>
                 {% if dados %}
                     <div class="table-responsive">
-                        <table class="table table-leag">
+                        <table class="table" style="color: var(--cor-texto) !important;">
                             <thead>
                                 <tr>
                                     <th style="color: var(--cor-texto) !important;">Data</th>
@@ -63,7 +61,7 @@
                         </table>
                     </div>
                 {% else %}
-                    <p class="text-muted" style="color: var(--cor-texto) !important;">Nenhum dado disponível.</p>
+                    <p style="color: var(--cor-texto) !important;">Nenhum dado disponível.</p>
                 {% endif %}
             </div>
         </div>
@@ -78,7 +76,7 @@
                 <h5 class="texto-primario"><i class="bi bi-list-ul"></i> Detalhes de Hoje</h5>
                 {% if detalhes %}
                     <div class="table-responsive">
-                        <table class="table table-leag">
+                        <table class="table" style="color: var(--cor-texto) !important;">
                             <thead>
                                 <tr>
                                     <th style="color: var(--cor-texto) !important;">Atividade</th>
@@ -111,7 +109,7 @@
                         </table>
                     </div>
                 {% else %}
-                    <p class="text-muted" style="color: var(--cor-texto) !important;">Nenhum registro hoje.</p>
+                    <p style="color: var(--cor-texto) !important;">Nenhum registro hoje.</p>
                 {% endif %}
             </div>
         </div>
