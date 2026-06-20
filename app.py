@@ -479,6 +479,8 @@ def toggle_modo():
     
     return redirect(url_for('dashboard'))
 
+# ===== ROTA RELATORIO CORRIGIDA =====
+
 @app.route('/relatorio')
 @login_required
 def relatorio():
@@ -535,7 +537,7 @@ def relatorio():
                              vacinas=vacinas)
     except Exception as e:
         flash(f'Erro ao carregar relatório: {str(e)}', 'danger')
-        return render_template('relatorio.html', dados=[], detalhes=[])
+        return render_template('relatorio.html', dados=[], detalhes=[], vacinas=[])
 
 @app.route('/bichinho')
 @login_required
@@ -669,7 +671,7 @@ def api_status_mamada():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-# ===== ROTAS DE SONO CONTÍNUO (NÃO PARA AO SAIR) =====
+# ===== ROTAS DE SONO CONTÍNUO (USANDO BANCO DE DADOS) =====
 
 @app.route('/api/iniciar_sono', methods=['POST'])
 @login_required
@@ -703,8 +705,6 @@ def api_parar_sono():
         )
         
         db.session.add(registro)
-        
-        # Limpar o início
         current_user.inicio_sono = None
         db.session.commit()
         
